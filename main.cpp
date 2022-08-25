@@ -48,6 +48,7 @@ int main(void)
     }
 
   int score = 0;
+  int lives = 3;
 
   while (!WindowShouldClose())
   {
@@ -57,7 +58,10 @@ int main(void)
     if (ballPosition.x > GetScreenWidth() - ballRadii || ballPosition.x < 0 + ballRadii)
       ballSpeed.x *= -1;
     if (ballPosition.y > GetScreenHeight() - ballRadii || ballPosition.y < 0 + ballRadii)
+    {
       ballSpeed.y *= -1;
+      lives--;
+    }
 
     if (CheckCollisionCircleRec(ballPosition, ballRadius, player))
       ballSpeed.y *= -1;
@@ -141,6 +145,7 @@ int main(void)
       DrawRectangleRec(brick, WHITE);
 
     DrawText(TextFormat("Score %d", score), 20, 10, 26, WHITE);
+    DrawText(TextFormat("Lives %d", lives), GetScreenWidth() - 100, 10, 26, WHITE);
 
     EndDrawing();
   }
