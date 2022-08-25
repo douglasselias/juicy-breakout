@@ -47,6 +47,8 @@ int main(void)
       bricks.push_back(brick);
     }
 
+  int score = 0;
+
   while (!WindowShouldClose())
   {
     float mousePositionWithPlayerOffset = GetMouseX() - player.width / 2;
@@ -71,30 +73,30 @@ int main(void)
         float horizontalHitboxHeight = brick.height / 3;
 
         Rectangle bottomHitbox = {};
-        bottomHitbox.width = brick.width - verticalHitboxWidth * 2;
+        bottomHitbox.width = brick.width;
         bottomHitbox.height = horizontalHitboxHeight;
-        bottomHitbox.x = brick.x + verticalHitboxWidth;
+        bottomHitbox.x = brick.x;
         bottomHitbox.y = brick.y + brick.height - bottomHitbox.height;
 
         if (CheckCollisionCircleRec(ballPosition, ballRadius, bottomHitbox))
         {
-          DrawText("Hit Bottom", 0, 0, 26, WHITE);
           ballSpeed.y *= -1;
           brick = {};
+          score += 100;
           break;
         }
 
         Rectangle topHitbox = {};
-        topHitbox.width = brick.width - verticalHitboxWidth * 2;
+        topHitbox.width = brick.width;
         topHitbox.height = horizontalHitboxHeight;
-        topHitbox.x = brick.x + verticalHitboxWidth;
+        topHitbox.x = brick.x;
         topHitbox.y = brick.y;
 
         if (CheckCollisionCircleRec(ballPosition, ballRadius, topHitbox))
         {
-          DrawText("Hit Top", 0, 0, 26, WHITE);
           ballSpeed.y *= -1;
           brick = {};
+          score += 100;
           break;
         }
 
@@ -106,9 +108,9 @@ int main(void)
 
         if (CheckCollisionCircleRec(ballPosition, ballRadius, leftHitbox))
         {
-          DrawText("Hit Left", 0, 0, 26, WHITE);
           ballSpeed.x *= -1;
           brick = {};
+          score += 100;
           break;
         }
 
@@ -120,9 +122,10 @@ int main(void)
 
         if (CheckCollisionCircleRec(ballPosition, ballRadius, rightHitbox))
         {
-          DrawText("Hit Right", 0, 0, 26, WHITE);
           ballSpeed.x *= -1;
           brick = {};
+          score += 100;
+          break;
         }
       }
     }
@@ -136,6 +139,8 @@ int main(void)
 
     for (auto &brick : bricks)
       DrawRectangleRec(brick, WHITE);
+
+    DrawText(TextFormat("Score %d", score), 20, 10, 26, WHITE);
 
     EndDrawing();
   }
