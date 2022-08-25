@@ -3,8 +3,34 @@
 
 #include <vector>
 
+float easeElasticOut(float t, float b, float c, float d)
+{
+  if (t == 0.0f)
+    return b;
+  if ((t /= d) == 1.0f)
+    return (b + c);
+
+  float p = d * 0.3f;
+  float a = c;
+  float s = p / 4.0f;
+
+  return (a * powf(2.0f, -10.0f * t) * sinf((t * d - s) * (2.0f * PI) / p) + c + b);
+}
+
 int main(void)
 {
+  int textFinalY = 10;
+  int textInitialY = 0;
+  enum FLAGS
+  {
+    COLOR = 2,
+    TWEENING = 4,
+  };
+  int currentFlag = 1;
+
+  int framesCounter = 0;
+  bool isTweeningAnimationFinished = false;
+
   const int screenWidth = 1080;
   const int screenHeight = 720;
 
@@ -16,6 +42,7 @@ int main(void)
   player.height = 30;
   player.x = GetScreenWidth() / 2 - player.width / 2;
   player.y = GetScreenHeight() - player.height;
+  int finalPlayerY = player.y;
 
   int ballRadius = 10;
   int ballRadii = ballRadius / 2;
@@ -26,6 +53,7 @@ int main(void)
   ballSpeed.x = 300;
   ballSpeed.y = 300;
 
+  std::vector<Rectangle> bricksWithOriginalPosition;
   std::vector<Rectangle> bricks;
   int brickWidth = 100;
   int brickHeight = 30;
@@ -45,6 +73,7 @@ int main(void)
       brick.y = (j * brick.height + j * brickSpacing) + topOffset;
 
       bricks.push_back(brick);
+      bricksWithOriginalPosition.push_back(brick);
     }
 
   int score = 0;
@@ -52,6 +81,14 @@ int main(void)
 
   while (!WindowShouldClose())
   {
+    if (IsKeyPressed(KEY_N) && currentFlag < 16)
+      currentFlag = (currentFlag << 1) + 1;
+    if (IsKeyPressed(KEY_B) && currentFlag > 1)
+      currentFlag >>= 1;
+
+    if (currentFlag < 5)
+      isTweeningAnimationFinished = false;
+
     float mousePositionWithPlayerOffset = GetMouseX() - player.width / 2;
     player.x = Clamp(mousePositionWithPlayerOffset, 0, GetScreenWidth() - player.width);
 
@@ -134,18 +171,38 @@ int main(void)
       }
     }
 
+    if (!isTweeningAnimationFinished && currentFlag & TWEENING)
+    {
+      framesCounter++;
+
+      player.y = easeElasticOut((float)framesCounter, 0, finalPlayerY, 120);
+
+      for (int i = 0; i < bricks.size(); i++)
+        bricks[i].y = easeElasticOut((float)framesCounter, 0, bricksWithOriginalPosition[i].y, 120);
+
+      textInitialY = easeElasticOut((float)framesCounter, 0, textFinalY, 120);
+
+      if (framesCounter >= 120)
+      {
+        framesCounter = 0;
+        isTweeningAnimationFinished = 1;
+      }
+    }
+
     BeginDrawing();
 
     ClearBackground(BLACK);
 
-    DrawRectangleRec(player, WHITE);
-    DrawCircleV(ballPosition, ballRadius, WHITE);
+    DrawRectangleRec(player,  currentFlag & COLOR ? DARKBLUE : WHITE);
+    DrawCircleV(ballPosition, ballRadius,  currentFlag & COLOR ? MAROON : WHITE);
 
     for (auto &brick : bricks)
-      DrawRectangleRec(brick, WHITE);
+      DrawRectangleRec(brick, currentFlag & COLOR ? GOLD : WHITE);
 
-    DrawText(TextFormat("Score %d", score), 20, 10, 26, WHITE);
-    DrawText(TextFormat("Lives %d", lives), GetScreenWidth() - 100, 10, 26, WHITE);
+    DrawText(TextFormat("Score %d", score), 20, textInitialY, 26,  currentFlag & COLOR ? SKYBLUE : WHITE);
+    DrawText(TextFormat("Lives %d", lives), GetScreenWidth() - 100, textInitialY, 26, currentFlag & COLOR ? SKYBLUE : WHITE);
+
+    DrawText(TextFormat("Flags %d", currentFlag), GetScreenWidth() / 2, textInitialY, 26, currentFlag & COLOR ? SKYBLUE : WHITE);
 
     EndDrawing();
   }
