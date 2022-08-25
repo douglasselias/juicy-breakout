@@ -25,6 +25,7 @@ int main(void)
   {
     COLOR = 2,
     TWEENING = 4,
+    SQUASH_STRETCH = 8,
   };
   int currentFlag = 1;
 
@@ -38,13 +39,16 @@ int main(void)
   SetTargetFPS(60);
 
   Rectangle player = {};
-  player.width = 200;
-  player.height = 30;
+  int basePlayerWidth = 200;
+  int basePlayerHeight = 30;
+  player.width = basePlayerWidth;
+  player.height = basePlayerHeight;
   player.x = GetScreenWidth() / 2 - player.width / 2;
   player.y = GetScreenHeight() - player.height;
   int finalPlayerY = player.y;
 
-  int ballRadius = 10;
+  int baseBallRadius = 10;
+  int ballRadius = baseBallRadius;
   int ballRadii = ballRadius / 2;
   Vector2 ballPosition = {};
   ballPosition.x = GetScreenWidth() / 2;
@@ -52,6 +56,7 @@ int main(void)
   Vector2 ballSpeed = {};
   ballSpeed.x = 300;
   ballSpeed.y = 300;
+  bool startBallAnim = false;
 
   std::vector<Rectangle> bricksWithOriginalPosition;
   std::vector<Rectangle> bricks;
@@ -110,6 +115,8 @@ int main(void)
     {
       if (CheckCollisionCircleRec(ballPosition, ballRadius, brick))
       {
+        startBallAnim = true;
+
         float verticalHitboxWidth = brick.width / 3;
         float horizontalHitboxHeight = brick.height / 3;
 
@@ -171,6 +178,23 @@ int main(void)
       }
     }
 
+    if (startBallAnim && currentFlag & SQUASH_STRETCH)
+    {
+      framesCounter++;
+
+      if (framesCounter < 60 / 2)
+        ballRadius = easeElasticOut((float)framesCounter, 0, 20, 30);
+      else
+        ballRadius = easeElasticOut((float)framesCounter, 0, 10, 30);
+
+      if (framesCounter >= 60)
+      {
+        framesCounter = 0;
+        startBallAnim = false;
+        ballRadius = baseBallRadius;
+      }
+    }
+
     if (!isTweeningAnimationFinished && currentFlag & TWEENING)
     {
       framesCounter++;
@@ -185,21 +209,37 @@ int main(void)
       if (framesCounter >= 120)
       {
         framesCounter = 0;
-        isTweeningAnimationFinished = 1;
+        isTweeningAnimationFinished = true;
       }
+    }
+
+    Vector2 mouseDelta = GetMouseDelta();
+    float absMouseDeltaX = abs(mouseDelta.x);
+
+    if (absMouseDeltaX > 50)
+    {
+      player.width = basePlayerWidth + 20;
+      player.height = basePlayerHeight - 15;
+      player.y = finalPlayerY + 15 / 2;
+    }
+    else
+    {
+      player.width = basePlayerWidth;
+      player.height = basePlayerHeight;
+      player.y = finalPlayerY;
     }
 
     BeginDrawing();
 
     ClearBackground(BLACK);
 
-    DrawRectangleRec(player,  currentFlag & COLOR ? DARKBLUE : WHITE);
-    DrawCircleV(ballPosition, ballRadius,  currentFlag & COLOR ? MAROON : WHITE);
+    DrawRectangleRec(player, currentFlag & COLOR ? DARKBLUE : WHITE);
+    DrawCircleV(ballPosition, ballRadius, currentFlag & COLOR ? MAROON : WHITE);
 
     for (auto &brick : bricks)
       DrawRectangleRec(brick, currentFlag & COLOR ? GOLD : WHITE);
 
-    DrawText(TextFormat("Score %d", score), 20, textInitialY, 26,  currentFlag & COLOR ? SKYBLUE : WHITE);
+    DrawText(TextFormat("Score %d", score), 20, textInitialY, 26, currentFlag & COLOR ? SKYBLUE : WHITE);
     DrawText(TextFormat("Lives %d", lives), GetScreenWidth() - 100, textInitialY, 26, currentFlag & COLOR ? SKYBLUE : WHITE);
 
     DrawText(TextFormat("Flags %d", currentFlag), GetScreenWidth() / 2, textInitialY, 26, currentFlag & COLOR ? SKYBLUE : WHITE);
