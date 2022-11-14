@@ -2,6 +2,7 @@
 #include "raymath.h"
 
 #include <vector>
+#include <entt/entt.hpp>
 
 float easeElasticOut(float t, float b, float c, float d)
 {
@@ -27,7 +28,7 @@ int main(void)
     TWEENING = 4,
     SQUASH_STRETCH = 8,
   };
-  int currentFlag = 1;
+  int currentFlag = COLOR;
 
   int framesCounter = 0;
   bool isTweeningAnimationFinished = false;
@@ -38,24 +39,26 @@ int main(void)
   InitWindow(screenWidth, screenHeight, "Juicy Breakout");
   SetTargetFPS(60);
 
-  Rectangle player = {};
   int basePlayerWidth = 200;
   int basePlayerHeight = 30;
-  player.width = basePlayerWidth;
-  player.height = basePlayerHeight;
-  player.x = GetScreenWidth() / 2 - player.width / 2;
-  player.y = GetScreenHeight() - player.height;
+  Rectangle player = {
+      .width = basePlayerWidth,
+      .height = basePlayerHeight,
+      .x = GetScreenWidth() / 2 - player.width / 2,
+      .y = GetScreenHeight() - player.height,
+  };
   int finalPlayerY = player.y;
 
   int baseBallRadius = 10;
   int ballRadius = baseBallRadius;
   int ballRadii = ballRadius / 2;
-  Vector2 ballPosition = {};
-  ballPosition.x = GetScreenWidth() / 2;
-  ballPosition.y = GetScreenHeight() / 2;
-  Vector2 ballSpeed = {};
-  ballSpeed.x = 300;
-  ballSpeed.y = 300;
+  Vector2 ballPosition = {
+      .x = GetScreenWidth() / 2,
+      .y = GetScreenHeight() / 2,
+  };
+  Vector2 ballSpeed = {
+      .x = 300,
+      .y = 300};
   bool startBallAnim = false;
 
   std::vector<Rectangle> bricksWithOriginalPosition;
@@ -69,20 +72,22 @@ int main(void)
   int leftOffset = GetScreenWidth() / 2 - (columns * brickWidth + columns * brickSpacing) / 2;
 
   for (int i = 0; i < columns; i++)
+  {
     for (int j = 0; j < lines; j++)
     {
-      Rectangle brick = {};
-      brick.width = brickWidth;
-      brick.height = brickHeight;
-      brick.x = (i * brick.width + i * brickSpacing) + leftOffset;
-      brick.y = (j * brick.height + j * brickSpacing) + topOffset;
-
+      Rectangle brick = {
+          .width = brickWidth,
+          .height = brickHeight,
+          .x = (i * brick.width + i * brickSpacing) + leftOffset,
+          .y = (j * brick.height + j * brickSpacing) + topOffset,
+      };
       bricks.push_back(brick);
       bricksWithOriginalPosition.push_back(brick);
     }
+  }
 
-  int score = 0;
-  int lives = 3;
+  uint score = 0;
+  uint lives = 3;
 
   while (!WindowShouldClose())
   {
@@ -120,11 +125,12 @@ int main(void)
         float verticalHitboxWidth = brick.width / 3;
         float horizontalHitboxHeight = brick.height / 3;
 
-        Rectangle bottomHitbox = {};
-        bottomHitbox.width = brick.width;
-        bottomHitbox.height = horizontalHitboxHeight;
-        bottomHitbox.x = brick.x;
-        bottomHitbox.y = brick.y + brick.height - bottomHitbox.height;
+        Rectangle bottomHitbox = {
+            .width = brick.width,
+            .height = horizontalHitboxHeight,
+            .x = brick.x,
+            .y = brick.y + brick.height - bottomHitbox.height,
+        };
 
         if (CheckCollisionCircleRec(ballPosition, ballRadius, bottomHitbox))
         {
@@ -134,11 +140,12 @@ int main(void)
           break;
         }
 
-        Rectangle topHitbox = {};
-        topHitbox.width = brick.width;
-        topHitbox.height = horizontalHitboxHeight;
-        topHitbox.x = brick.x;
-        topHitbox.y = brick.y;
+        Rectangle topHitbox = {
+            .width = brick.width,
+            .height = horizontalHitboxHeight,
+            .x = brick.x,
+            .y = brick.y,
+        };
 
         if (CheckCollisionCircleRec(ballPosition, ballRadius, topHitbox))
         {
@@ -148,11 +155,12 @@ int main(void)
           break;
         }
 
-        Rectangle leftHitbox = {};
-        leftHitbox.width = verticalHitboxWidth;
-        leftHitbox.height = brick.height - horizontalHitboxHeight * 2;
-        leftHitbox.x = brick.x;
-        leftHitbox.y = brick.y + horizontalHitboxHeight;
+        Rectangle leftHitbox = {
+            .width = verticalHitboxWidth,
+            .height = brick.height - horizontalHitboxHeight * 2,
+            .x = brick.x,
+            .y = brick.y + horizontalHitboxHeight,
+        };
 
         if (CheckCollisionCircleRec(ballPosition, ballRadius, leftHitbox))
         {
@@ -162,11 +170,12 @@ int main(void)
           break;
         }
 
-        Rectangle rightHitbox = {};
-        rightHitbox.width = verticalHitboxWidth;
-        rightHitbox.height = brick.height - horizontalHitboxHeight * 2;
-        rightHitbox.x = brick.x + brick.width - rightHitbox.width;
-        rightHitbox.y = brick.y + horizontalHitboxHeight;
+        Rectangle rightHitbox = {
+            .width = verticalHitboxWidth,
+            .height = brick.height - horizontalHitboxHeight * 2,
+            .x = brick.x + brick.width - rightHitbox.width,
+            .y = brick.y + horizontalHitboxHeight,
+        };
 
         if (CheckCollisionCircleRec(ballPosition, ballRadius, rightHitbox))
         {
