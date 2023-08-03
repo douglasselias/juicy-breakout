@@ -1,17 +1,16 @@
-cxx := "clang++"
-flags := "-std=c++17 -Os -Wall -Werror -lraylib -o"
-version := "0.0.0"
-build-path := "build"
-build-file := build-path / "juicy-breakout-v" + version
-main := "main.cpp"
+just:
+  mkdir -p build
+  zig cc main.c -o build/main -lSDL2
 
 run:
-  just build
-  ./{{build-file}}
+  ./build/main
 
-build:
-  mkdir -p {{build-path}}
-  {{cxx}} {{flags}} {{build-file}} {{main}}
+cpp:
+  mkdir -p build
+  clang++ main.cpp -std=c++17 -Isrc -Os -Wall -Werror -lraylib -o build/main-v0.0.0
+  ./build/main-v0.0.0
 
-clean:
-  rm build/** && rm build
+c:
+  mkdir -p build
+  clang main.c -std=c99 -Isrc -Os -Wall -Werror -lSDL2 -lm -o build/main-c-v0.0.0
+  ./build/main-c-v0.0.0
