@@ -1,18 +1,15 @@
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_timer.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
 
 #include <SDL2/SDL.h>
 
-#define FALSE 0
-#define TRUE 1
+const int WINDOW_WIDTH = 1280;
+const int WINDOW_HEIGHT = 720;
 
-#define WINDOW_WIDTH 1280
-#define WINDOW_HEIGHT 720
-
-#define FPS 75
-#define FRAME_TARGET_TIME (1000 / FPS)
+const int FPS = 75;
+const int FRAME_TARGET_TIME = (1000 / FPS);
 
 struct ball {
   float x;
@@ -23,42 +20,39 @@ struct ball {
 
 int last_frame_time = 0;
 
-// int ContainsColor(char unsigned Pixel, char unsigned Color) {
-//   /* Fill in the computation of true (non-zero) or false (zero) here */
-// }
-
 float degree_to_radian(float degree) {
   float pi = 3.1415;
   return degree * (pi / 180);
 }
 
-void Plot(SDL_Renderer *renderer, int X, int Y) {
+void plot_pixel(SDL_Renderer *renderer, int x, int y) {
   int size = 1;
   SDL_Rect pixel = {
-      .x = X,
-      .y = Y,
+      .x = x,
+      .y = y,
       .w = size,
       .h = size,
   };
   SDL_RenderFillRect(renderer, &pixel);
 }
 
-void OutlineCircle(SDL_Renderer *renderer, int Cx, int Cy, int R) {
+void draw_circle_outline(SDL_Renderer *renderer, int center_x, int center_y, int radius) {
   int precision = 360;
   for (int i = 0; i <= precision; i++) {
     float radian = degree_to_radian(i);
-    int x = Cx + (cos(radian) * R);
-    int y = Cy + (sin(radian) * R);
+    int x = center_x + (cos(radian) * radius);
+    int y = center_y + (sin(radian) * radius);
 
-    Plot(renderer, x, y);
+    plot_pixel(renderer, x, y);
   }
 }
 
 int main(int argc, char *args[]) {
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
     fprintf(stderr, "Error initializing SDL\n");
-    return FALSE;
+    return EXIT_FAILURE;
   }
+  // atexit(SDL_Quit);
 
   SDL_Window *window =
       SDL_CreateWindow(NULL, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -66,18 +60,18 @@ int main(int argc, char *args[]) {
 
   if (window == NULL) {
     fprintf(stderr, "Error creating SDL window\n");
-    return FALSE;
+    return EXIT_FAILURE;
   }
 
   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
 
   if (renderer == NULL) {
     fprintf(stderr, "Error creating SDL renderer\n");
-    return FALSE;
+    return EXIT_FAILURE;
   }
 
   // setup();
-  int game_is_running = TRUE;
+  int game_is_running = true;
   // ball.x = (float)WINDOW_WIDTH / 2;
   // ball.y = (float)WINDOW_HEIGHT / 2;
   // ball.width = 1;
@@ -90,11 +84,11 @@ int main(int argc, char *args[]) {
 
     switch (event.type) {
     case SDL_QUIT:
-      game_is_running = FALSE;
+      game_is_running = false;
       break;
     case SDL_KEYDOWN:
       if (event.key.keysym.sym == SDLK_ESCAPE)
-        game_is_running = FALSE;
+        game_is_running = false;
       break;
     }
 
@@ -118,7 +112,7 @@ int main(int argc, char *args[]) {
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
-    OutlineCircle(renderer, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2,
+    draw_circle_outline(renderer, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2,
                   WINDOW_HEIGHT / 2);
 
     SDL_RenderPresent(renderer); // double buffer swap
@@ -129,5 +123,5 @@ int main(int argc, char *args[]) {
   SDL_DestroyWindow(window);
   SDL_Quit();
 
-  return FALSE;
+  return EXIT_SUCCESS;
 }
