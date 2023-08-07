@@ -1,6 +1,3 @@
-#include <SDL2/SDL_log.h>
-#include <SDL2/SDL_rect.h>
-#include <SDL2/SDL_render.h>
 #include <cstddef>
 #include <cstdint>
 #include <math.h>
@@ -30,8 +27,8 @@ paddle_size player_size = {
 };
 
 typedef struct player_input {
-  int up;
-  int down;
+  uint8_t up;
+  uint8_t down;
 } player_input;
 
 float degree_to_radian(float degree) { return degree * (M_PI / 180); }
@@ -105,37 +102,55 @@ int main(int argc, char *args[]) {
   int ball_radius = 5;
 
   while (game_is_running) {
-    // process_input();
+    // --------- PROCESS INPUT --------- //
     SDL_Event event;
     SDL_PollEvent(&event);
-
-    // player1_input = {0, 0};
-    // player2_input = {0, 0};
 
     switch (event.type) {
     case SDL_QUIT:
       game_is_running = false;
       break;
     case SDL_KEYDOWN:
-      if (event.key.keysym.sym == SDLK_ESCAPE)
+      switch (event.key.keysym.sym) {
+      case SDLK_ESCAPE:
         game_is_running = false;
+        break;
 
-      player1_input.up = event.key.keysym.sym == SDLK_w;
-      player1_input.down = event.key.keysym.sym == SDLK_s;
+      case SDLK_w:
+        player1_input.up = 1;
+        break;
+      case SDLK_s:
+        player1_input.down = 1;
+        break;
 
-      player2_input.up = event.key.keysym.sym == SDLK_i;
-      player2_input.down = event.key.keysym.sym == SDLK_k;
+      case SDLK_i:
+        player2_input.up = 1;
+        break;
+      case SDLK_k:
+        player2_input.down = 1;
+        break;
+      }
       break;
     case SDL_KEYUP:
-      player1_input.up = event.key.keysym.sym != SDLK_w;
-      player1_input.down = event.key.keysym.sym == SDLK_s;
+      switch (event.key.keysym.sym) {
+      case SDLK_w:
+        player1_input.up = 0;
+        break;
+      case SDLK_s:
+        player1_input.down = 0;
+        break;
 
-      player2_input.up = event.key.keysym.sym != SDLK_i;
-      player2_input.down = event.key.keysym.sym != SDLK_k;
+      case SDLK_i:
+        player2_input.up = 0;
+        break;
+      case SDLK_k:
+        player2_input.down = 0;
+        break;
+      }
       break;
     }
 
-    // update();
+    // --------- UPDATE --------- //
     // cap framerate to 60 fps
     int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - last_frame_time);
     if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
@@ -146,20 +161,24 @@ int main(int argc, char *args[]) {
     last_frame_time = SDL_GetTicks();
 
     if (player1_input.up)
-      player1_position.y -= paddle_speed;
+      player1_position.y = SDL_clamp(player1_position.y - paddle_speed, 0,
+                                     WINDOW_HEIGHT - player_size.height);
     if (player1_input.down)
-      player1_position.y += paddle_speed;
+      player1_position.y = SDL_clamp(player1_position.y + paddle_speed, 0,
+                                     WINDOW_HEIGHT - player_size.height);
     if (player2_input.up)
-      player2_position.y += paddle_speed;
+      player2_position.y = SDL_clamp(player2_position.y - paddle_speed, 0,
+                                     WINDOW_HEIGHT - player_size.height);
     if (player2_input.down)
-      player2_position.y -= paddle_speed;
+      player2_position.y = SDL_clamp(player2_position.y + paddle_speed, 0,
+                                     WINDOW_HEIGHT - player_size.height);
 
     ball_position.x += 2 * delta_time;
     ball_position.y += 2 * delta_time;
     // SDL_PointInFRect(const SDL_FPoint *p, const SDL_FRect *r);
     // SDL_PointInRect(const SDL_Point *p, const SDL_Rect *r);
 
-    // render();
+    // --------- RENDERING --------- //
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
