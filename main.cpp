@@ -73,14 +73,16 @@ int main(int argc, char *args[]) {
   // setup();
   int game_is_running = true;
 
+  float initial_y_position = HALF_WINDOW_H - (player_size.height / 2);
+
   SDL_FPoint player1_position = {
       .x = 10,
-      .y = HALF_WINDOW_W,
+      .y = initial_y_position,
   };
 
   SDL_FPoint player2_position = {
       .x = WINDOW_WIDTH - player_size.width - 10,
-      .y = HALF_WINDOW_W,
+      .y = initial_y_position,
   };
 
   player_input player1_input = {
@@ -119,20 +121,17 @@ int main(int argc, char *args[]) {
         game_is_running = false;
 
       player1_input.up = event.key.keysym.sym == SDLK_w;
-      // SDL_Log("Why: %d", player1_input.up);
       player1_input.down = event.key.keysym.sym == SDLK_s;
 
       player2_input.up = event.key.keysym.sym == SDLK_i;
       player2_input.down = event.key.keysym.sym == SDLK_k;
       break;
     case SDL_KEYUP:
-    
-      player1_input.up = !(event.key.keysym.sym == SDLK_w);
-      // SDL_Log("Why 2: %d", player1_input.up);
-      player1_input.down = !(event.key.keysym.sym == SDLK_s);
+      player1_input.up = event.key.keysym.sym != SDLK_w;
+      player1_input.down = event.key.keysym.sym == SDLK_s;
 
-      player2_input.up = !(event.key.keysym.sym == SDLK_i);
-      player2_input.down = !(event.key.keysym.sym == SDLK_k);
+      player2_input.up = event.key.keysym.sym != SDLK_i;
+      player2_input.down = event.key.keysym.sym != SDLK_k;
       break;
     }
 
@@ -155,8 +154,8 @@ int main(int argc, char *args[]) {
     if (player2_input.down)
       player2_position.y -= paddle_speed;
 
-    ball_position.x += 0.70 * delta_time;
-    ball_position.y += 0.50 * delta_time;
+    ball_position.x += 2 * delta_time;
+    ball_position.y += 2 * delta_time;
     // SDL_PointInFRect(const SDL_FPoint *p, const SDL_FRect *r);
     // SDL_PointInRect(const SDL_Point *p, const SDL_Rect *r);
 
