@@ -1,3 +1,5 @@
+#include <SDL2/SDL_rect.h>
+#include <SDL2/SDL_timer.h>
 #include <cstddef>
 #include <cstdint>
 #include <math.h>
@@ -22,8 +24,8 @@ typedef struct paddle_size {
 } paddle_size;
 
 paddle_size player_size = {
-    .width = 10,
-    .height = 50,
+    .width = 20,
+    .height = 100,
 };
 
 typedef struct player_input {
@@ -35,13 +37,12 @@ float degree_to_radian(float degree) { return degree * (M_PI / 180); }
 
 void draw_circle(SDL_Renderer *renderer, int center_x, int center_y,
                  int radius) {
-  int precision = 360 * 5;
-  for (int i = 0; i <= precision; i++) {
-    float radian = degree_to_radian(i);
-    int x = center_x + (SDL_cos(radian) * radius);
-    int y = center_y + (SDL_sin(radian) * radius);
-
-    SDL_RenderDrawPoint(renderer, x, y);
+  for (int x = -radius; x <= radius; x++) {
+    for (int y = -radius; y <= radius; y++) {
+      if (x * x + y * y <= radius * radius) {
+        SDL_RenderDrawPoint(renderer, center_x + x, center_y + y);
+      }
+    }
   }
 }
 
@@ -103,7 +104,7 @@ int main(int argc, char *args[]) {
       .y = HALF_WINDOW_H,
   };
 
-  int ball_radius = 30;
+  int ball_radius = 10;
   int ball_speed = 6;
 
   int invert_x = false;
@@ -181,6 +182,26 @@ int main(int argc, char *args[]) {
       player2_position.y =
           clamp_player_position(player2_position.y + paddle_speed);
 
+    SDL_FRect player1_rect = {
+        .x = player1_position.x,
+        .y = player1_position.y,
+        .w = player_size.width,
+        .h = player_size.height,
+    };
+
+    SDL_FRect player2_rect = {
+        .x = player2_position.x,
+        .y = player2_position.y,
+        .w = player_size.width,
+        .h = player_size.height,
+    };
+
+    if (SDL_PointInFRect(&ball_position, &player1_rect))
+      invert_x = !invert_x;
+
+    if (SDL_PointInFRect(&ball_position, &player2_rect))
+      invert_x = !invert_x;
+
     if (ball_position.x + ball_radius + ball_speed > WINDOW_WIDTH ||
         ball_position.x - ball_radius + ball_speed < 0)
       invert_x = !invert_x;
@@ -191,11 +212,6 @@ int main(int argc, char *args[]) {
 
     ball_position.x += ball_speed * (invert_x ? -1 : 1);
     ball_position.y += ball_speed * (invert_y ? -1 : 1);
-
-    // invert_x = false;
-    // invert_y = false;
-    // SDL_PointInFRect(const SDL_FPoint *p, const SDL_FRect *r);
-    // SDL_PointInRect(const SDL_Point *p, const SDL_Rect *r);
 
     // --------- RENDERING --------- //
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
