@@ -45,6 +45,10 @@ void draw_circle(SDL_Renderer *renderer, int center_x, int center_y,
   }
 }
 
+float clamp_player_position(float position) {
+  return SDL_clamp(position, 0, WINDOW_HEIGHT - player_size.height);
+}
+
 int main(int argc, char *args[]) {
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
     fprintf(stderr, "Error initializing SDL\n");
@@ -99,7 +103,11 @@ int main(int argc, char *args[]) {
       .y = HALF_WINDOW_H,
   };
 
-  int ball_radius = 5;
+  int ball_radius = 30;
+  int ball_speed = 6;
+
+  int invert_x = false;
+  int invert_y = false;
 
   while (game_is_running) {
     // --------- PROCESS INPUT --------- //
@@ -161,20 +169,31 @@ int main(int argc, char *args[]) {
     last_frame_time = SDL_GetTicks();
 
     if (player1_input.up)
-      player1_position.y = SDL_clamp(player1_position.y - paddle_speed, 0,
-                                     WINDOW_HEIGHT - player_size.height);
+      player1_position.y =
+          clamp_player_position(player1_position.y - paddle_speed);
     if (player1_input.down)
-      player1_position.y = SDL_clamp(player1_position.y + paddle_speed, 0,
-                                     WINDOW_HEIGHT - player_size.height);
+      player1_position.y =
+          clamp_player_position(player1_position.y + paddle_speed);
     if (player2_input.up)
-      player2_position.y = SDL_clamp(player2_position.y - paddle_speed, 0,
-                                     WINDOW_HEIGHT - player_size.height);
+      player2_position.y =
+          clamp_player_position(player2_position.y - paddle_speed);
     if (player2_input.down)
-      player2_position.y = SDL_clamp(player2_position.y + paddle_speed, 0,
-                                     WINDOW_HEIGHT - player_size.height);
+      player2_position.y =
+          clamp_player_position(player2_position.y + paddle_speed);
 
-    ball_position.x += 2 * delta_time;
-    ball_position.y += 2 * delta_time;
+    if (ball_position.x + ball_radius + ball_speed > WINDOW_WIDTH ||
+        ball_position.x - ball_radius + ball_speed < 0)
+      invert_x = !invert_x;
+
+    if (ball_position.y + ball_radius + ball_speed > WINDOW_HEIGHT ||
+        ball_position.y - ball_radius + ball_speed < 0)
+      invert_y = !invert_y;
+
+    ball_position.x += ball_speed * (invert_x ? -1 : 1);
+    ball_position.y += ball_speed * (invert_y ? -1 : 1);
+
+    // invert_x = false;
+    // invert_y = false;
     // SDL_PointInFRect(const SDL_FPoint *p, const SDL_FRect *r);
     // SDL_PointInRect(const SDL_Point *p, const SDL_Rect *r);
 
