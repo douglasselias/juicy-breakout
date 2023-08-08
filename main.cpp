@@ -1,13 +1,17 @@
 #include <SDL2/SDL_rect.h>
+#include <SDL2/SDL_surface.h>
 #include <SDL2/SDL_timer.h>
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 const int WINDOW_WIDTH = 1280;
 const int WINDOW_HEIGHT = 720;
@@ -65,12 +69,37 @@ int main(int argc, char *args[]) {
     return EXIT_FAILURE;
   }
 
+  if (TTF_Init() == -1) {
+    fprintf(stderr, "SDL_ttf initialization failed: %s", TTF_GetError());
+    return EXIT_FAILURE;
+  }
+
   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
 
   if (renderer == NULL) {
     fprintf(stderr, "Error creating SDL renderer\n");
     return EXIT_FAILURE;
   }
+
+  TTF_Font *font = TTF_OpenFont("PressStart2P.ttf", 16);
+  if (font == NULL) {
+    fprintf(stderr, "Font loading failed: %s", TTF_GetError());
+    return EXIT_FAILURE;
+  }
+
+  SDL_Color textColor = {255, 255, 255, 255};
+  // SDL_Surface *textSurface = TTF_RenderText_Solid(font, "0", textColor);
+  // if (textSurface == NULL) {
+  //   fprintf(stderr, "Text rendering failed: %s", TTF_GetError());
+  //   return EXIT_FAILURE;
+  // }
+
+  // SDL_Texture *textTexture = NULL;
+  //     SDL_CreateTextureFromSurface(renderer, textSurface);
+  // if (textTexture == NULL) {
+  //   fprintf(stderr, "Texture creation failed: %s", SDL_GetError());
+  //   return EXIT_FAILURE;
+  // }
 
   // setup();
   int game_is_running = true;
@@ -109,6 +138,9 @@ int main(int argc, char *args[]) {
 
   int invert_x = false;
   int invert_y = false;
+
+  int player1_score = 0;
+  int player2_score = 0;
 
   while (game_is_running) {
     // --------- PROCESS INPUT --------- //
@@ -202,8 +234,17 @@ int main(int argc, char *args[]) {
     if (SDL_PointInFRect(&ball_position, &player2_rect))
       invert_x = !invert_x;
 
-    if (ball_position.x + ball_radius + ball_speed > WINDOW_WIDTH ||
-        ball_position.x - ball_radius + ball_speed < 0)
+    bool hit_left_wall = ball_position.x - ball_radius + ball_speed < 0;
+    bool hit_right_wall =
+        ball_position.x + ball_radius + ball_speed > WINDOW_WIDTH;
+
+    if (hit_left_wall)
+      player2_score += 1;
+
+    if (hit_right_wall)
+      player1_score += 1;
+
+    if (hit_right_wall || hit_left_wall)
       invert_x = !invert_x;
 
     if (ball_position.y + ball_radius + ball_speed > WINDOW_HEIGHT ||
@@ -218,6 +259,39 @@ int main(int argc, char *args[]) {
     SDL_RenderClear(renderer);
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+    SDL_Surface *text_surf = TTF_RenderText_Solid(
+        font, std::to_string(player1_score).c_str(), textColor);
+    SDL_Texture *textTexture =
+        SDL_CreateTextureFromSurface(renderer, text_surf);
+
+    SDL_Rect dest = {};
+    dest.x = HALF_WINDOW_W - text_surf->w * 4;
+    dest.y = 15;
+    dest.w = text_surf->w * 2;
+    dest.h = text_surf->h * 2;
+    SDL_RenderCopy(renderer, textTexture, NULL, &dest);
+
+    SDL_DestroyTexture(textTexture);
+    SDL_FreeSurface(text_surf);
+
+    // player 2 score
+    SDL_Surface *text_surf2 = TTF_RenderText_Solid(
+        font, std::to_string(player2_score).c_str(), textColor);
+    SDL_Texture *textTexture2 =
+        SDL_CreateTextureFromSurface(renderer, text_surf2);
+
+    SDL_Rect dest2 = {};
+    dest2.x = HALF_WINDOW_W + text_surf2->w * 2;
+    dest2.y = 15;
+    dest2.w = text_surf2->w * 2;
+    dest2.h = text_surf2->h * 2;
+    SDL_RenderCopy(renderer, textTexture2, NULL, &dest2);
+
+    SDL_DestroyTexture(textTexture2);
+    SDL_FreeSurface(text_surf2);
+    // player 2 score
+
     float radius = (float)WINDOW_HEIGHT / 2;
     draw_circle(renderer, ball_position.x, ball_position.y, ball_radius);
     SDL_RenderDrawLine(renderer, WINDOW_WIDTH / 2, 0, WINDOW_WIDTH / 2,
@@ -243,8 +317,14 @@ int main(int argc, char *args[]) {
     SDL_RenderPresent(renderer); // double buffer swap
   }
 
+  // SDL_FreeSurface(textSurface);
+  // SDL_DestroyTexture(textTexture);
+  TTF_CloseFont(font);
+
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
+
+  TTF_Quit();
   SDL_Quit();
 
   return EXIT_SUCCESS;
