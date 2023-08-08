@@ -1,13 +1,10 @@
-#include <SDL2/SDL_rect.h>
-#include <SDL2/SDL_surface.h>
-#include <SDL2/SDL_timer.h>
+#include <cmath>
+#include <cstdbool>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <cstdlib>
-#include <math.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
+
 #include <string>
 
 #include <SDL2/SDL.h>
@@ -37,12 +34,10 @@ typedef struct player_input {
   uint8_t down;
 } player_input;
 
-float degree_to_radian(float degree) { return degree * (M_PI / 180); }
-
 void draw_circle(SDL_Renderer *renderer, int center_x, int center_y,
                  int radius) {
-  for (int x = -radius; x <= radius; x++) {
-    for (int y = -radius; y <= radius; y++) {
+  for (int x = -radius; x <= radius; x += 1) {
+    for (int y = -radius; y <= radius; y += 1) {
       if (x * x + y * y <= radius * radius) {
         SDL_RenderDrawPoint(renderer, center_x + x, center_y + y);
       }
@@ -88,18 +83,19 @@ int main(int argc, char *args[]) {
   }
 
   SDL_Color textColor = {255, 255, 255, 255};
-  // SDL_Surface *textSurface = TTF_RenderText_Solid(font, "0", textColor);
-  // if (textSurface == NULL) {
-  //   fprintf(stderr, "Text rendering failed: %s", TTF_GetError());
-  //   return EXIT_FAILURE;
-  // }
+  SDL_Surface *game_over_surface =
+      TTF_RenderText_Solid(font, "Game over", textColor);
+  if (game_over_surface == NULL) {
+    fprintf(stderr, "Text rendering failed: %s", TTF_GetError());
+    return EXIT_FAILURE;
+  }
 
-  // SDL_Texture *textTexture = NULL;
-  //     SDL_CreateTextureFromSurface(renderer, textSurface);
-  // if (textTexture == NULL) {
-  //   fprintf(stderr, "Texture creation failed: %s", SDL_GetError());
-  //   return EXIT_FAILURE;
-  // }
+  SDL_Texture *game_over_texture =
+      SDL_CreateTextureFromSurface(renderer, game_over_surface);
+  if (game_over_texture == NULL) {
+    fprintf(stderr, "Texture creation failed: %s", SDL_GetError());
+    return EXIT_FAILURE;
+  }
 
   // setup();
   int game_is_running = true;
@@ -141,6 +137,16 @@ int main(int argc, char *args[]) {
 
   int player1_score = 0;
   int player2_score = 0;
+
+  enum game_state {
+    menu,
+    playing,
+    game_over,
+  };
+
+  int current_game_state = menu;
+
+  int max_score = 1;
 
   while (game_is_running) {
     // --------- PROCESS INPUT --------- //
@@ -244,6 +250,12 @@ int main(int argc, char *args[]) {
     if (hit_right_wall)
       player1_score += 1;
 
+    if (player1_score == max_score)
+      current_game_state = game_over;
+
+    if (player2_score == max_score)
+      current_game_state = game_over;
+
     if (hit_right_wall || hit_left_wall)
       invert_x = !invert_x;
 
@@ -292,6 +304,15 @@ int main(int argc, char *args[]) {
     SDL_FreeSurface(text_surf2);
     // player 2 score
 
+    if (current_game_state == game_over) {
+      SDL_Rect game_over_dstrect = {};
+      game_over_dstrect.x = HALF_WINDOW_W - game_over_surface->w;
+      game_over_dstrect.y = HALF_WINDOW_H - game_over_surface->h;
+      game_over_dstrect.w = game_over_surface->w * 2;
+      game_over_dstrect.h = game_over_surface->h * 2;
+      SDL_RenderCopy(renderer, game_over_texture, NULL, &game_over_dstrect);
+    }
+
     float radius = (float)WINDOW_HEIGHT / 2;
     draw_circle(renderer, ball_position.x, ball_position.y, ball_radius);
     SDL_RenderDrawLine(renderer, WINDOW_WIDTH / 2, 0, WINDOW_WIDTH / 2,
@@ -317,8 +338,8 @@ int main(int argc, char *args[]) {
     SDL_RenderPresent(renderer); // double buffer swap
   }
 
-  // SDL_FreeSurface(textSurface);
-  // SDL_DestroyTexture(textTexture);
+  SDL_FreeSurface(game_over_surface);
+  SDL_DestroyTexture(game_over_texture);
   TTF_CloseFont(font);
 
   SDL_DestroyRenderer(renderer);
