@@ -1,4 +1,3 @@
-#include <SDL2/SDL_stdinc.h>
 #include <cmath>
 #include <cstdbool>
 #include <cstddef>
@@ -14,25 +13,11 @@
 
 #include "src/ball.cpp"
 #include "src/paddle.cpp"
+#include "src/score.cpp"
 #include "src/window.cpp"
 
 b2Vec2 gravity(0.0f, 0.0f);
 b2World world(gravity);
-
-void draw_circle(SDL_Renderer *renderer, int center_x, int center_y,
-                 int radius) noexcept {
-  for (int x = -radius; x <= radius; x += 1) {
-    for (int y = -radius; y <= radius; y += 1) {
-      if (x * x + y * y <= radius * radius) {
-        SDL_RenderDrawPoint(renderer, center_x + x, center_y + y);
-      }
-    }
-  }
-}
-
-float clamp_player_position(float position) {
-  return SDL_clamp(position, 0, WINDOW_HEIGHT - player_size.height);
-}
 
 bool ball_paddle_collision(SDL_FPoint ball_center, int ball_radius,
                            SDL_FRect paddle) {
@@ -113,9 +98,9 @@ int main(int argc, char *args[]) {
     return EXIT_FAILURE;
   }
 
-  SDL_Color textColor = {255, 255, 255, 255};
+  SDL_Color text_color = {255, 255, 255, 255};
   SDL_Surface *game_over_surface =
-      TTF_RenderText_Solid(font, "Game over", textColor);
+      TTF_RenderText_Solid(font, "Game over", text_color);
   if (game_over_surface == NULL) {
     fprintf(stderr, "Text rendering failed: %s", TTF_GetError());
     return EXIT_FAILURE;
@@ -131,56 +116,12 @@ int main(int argc, char *args[]) {
   // setup();
   int game_is_running = true;
 
-  float initial_y_position = HALF_WINDOW_H - (player_size.height / 2);
-
-  float player_gap = 0;
-  SDL_FPoint player1_position = {
-      .x = player_gap,
-      .y = initial_y_position,
-  };
-  SDL_FPoint player2_position = {
-      .x = WINDOW_WIDTH - player_size.width - player_gap,
-      .y = initial_y_position,
-  };
-
-  player_input player1_input = {
-      .up = 0,
-      .down = 0,
-  };
-
-  player_input player2_input = {
-      .up = 0,
-      .down = 0,
-  };
-
-  int paddle_speed = 10;
-
-  SDL_FPoint ball_position = {
-      .x = HALF_WINDOW_W,
-      .y = HALF_WINDOW_H,
-  };
-
-  // int ball_radius = 10;
-  // int ball_base_speed = 6;
-  // int ball_speed_x = ball_base_speed;
-  // int ball_speed_y = ball_base_speed;
-  // int ball_speed_increase_x = 1;
-  // int ball_speed_increase_y = 1;
-
-  int invert_x = 1;
-  int invert_y = 1;
-
-  int player1_score = 0;
-  int player2_score = 0;
-
   enum game_state {
     menu,
     playing,
     game_over,
   };
-
   int current_game_state = menu;
-
   int max_score = 1;
 
   while (game_is_running) {
@@ -373,37 +314,8 @@ int main(int argc, char *args[]) {
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
-    SDL_Surface *text_surf = TTF_RenderText_Solid(
-        font, std::to_string(player1_score).c_str(), textColor);
-    SDL_Texture *textTexture =
-        SDL_CreateTextureFromSurface(renderer, text_surf);
-
-    SDL_Rect dest = {};
-    dest.x = HALF_WINDOW_W - text_surf->w * 4;
-    dest.y = 15;
-    dest.w = text_surf->w * 2;
-    dest.h = text_surf->h * 2;
-    SDL_RenderCopy(renderer, textTexture, NULL, &dest);
-
-    SDL_DestroyTexture(textTexture);
-    SDL_FreeSurface(text_surf);
-
-    // player 2 score
-    SDL_Surface *text_surf2 = TTF_RenderText_Solid(
-        font, std::to_string(player2_score).c_str(), textColor);
-    SDL_Texture *textTexture2 =
-        SDL_CreateTextureFromSurface(renderer, text_surf2);
-
-    SDL_Rect dest2 = {};
-    dest2.x = HALF_WINDOW_W + text_surf2->w * 2;
-    dest2.y = 15;
-    dest2.w = text_surf2->w * 2;
-    dest2.h = text_surf2->h * 2;
-    SDL_RenderCopy(renderer, textTexture2, NULL, &dest2);
-
-    SDL_DestroyTexture(textTexture2);
-    SDL_FreeSurface(text_surf2);
-    // player 2 score
+    draw_score(font, renderer, text_color, true);
+    draw_score(font, renderer, text_color, false);
 
     if (current_game_state == game_over) {
       SDL_Rect game_over_dstrect = {};
@@ -419,22 +331,8 @@ int main(int argc, char *args[]) {
     SDL_RenderDrawLine(renderer, WINDOW_WIDTH / 2, 0, WINDOW_WIDTH / 2,
                        WINDOW_HEIGHT);
 
-    SDL_FRect player1 = {
-        .x = player1_position.x,
-        .y = player1_position.y,
-        .w = player_size.width,
-        .h = player_size.height,
-    };
-
-    SDL_FRect player2 = {
-        .x = player2_position.x,
-        .y = player2_position.y,
-        .w = player_size.width,
-        .h = player_size.height,
-    };
-
-    SDL_RenderFillRectF(renderer, &player1);
-    SDL_RenderFillRectF(renderer, &player2);
+    render_player1(renderer);
+    render_player2(renderer);
 
     SDL_RenderPresent(renderer); // double buffer swap
   }

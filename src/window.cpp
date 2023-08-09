@@ -1,3 +1,5 @@
+#pragma once
+
 const int WINDOW_WIDTH = 1280;
 const int WINDOW_HEIGHT = 720;
 const int HALF_WINDOW_W = WINDOW_WIDTH / 2;
