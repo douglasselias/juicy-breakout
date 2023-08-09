@@ -1,3 +1,4 @@
+#include <SDL2/SDL_stdinc.h>
 #include <cmath>
 #include <cstdbool>
 #include <cstddef>
@@ -9,33 +10,17 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <box2d/box2d.h>
 
-const int WINDOW_WIDTH = 1280;
-const int WINDOW_HEIGHT = 720;
-const int HALF_WINDOW_W = WINDOW_WIDTH / 2;
-const int HALF_WINDOW_H = WINDOW_HEIGHT / 2;
+#include "src/ball.cpp"
+#include "src/paddle.cpp"
+#include "src/window.cpp"
 
-const int FPS = 60;
-const int FRAME_TARGET_TIME = (1000 / FPS);
-int last_frame_time = 0;
-
-typedef struct paddle_size {
-  float width;
-  float height;
-} paddle_size;
-
-paddle_size player_size = {
-    .width = 20,
-    .height = 100,
-};
-
-typedef struct player_input {
-  uint8_t up;
-  uint8_t down;
-} player_input;
+b2Vec2 gravity(0.0f, 0.0f);
+b2World world(gravity);
 
 void draw_circle(SDL_Renderer *renderer, int center_x, int center_y,
-                 int radius) {
+                 int radius) noexcept {
   for (int x = -radius; x <= radius; x += 1) {
     for (int y = -radius; y <= radius; y += 1) {
       if (x * x + y * y <= radius * radius) {
@@ -47,6 +32,52 @@ void draw_circle(SDL_Renderer *renderer, int center_x, int center_y,
 
 float clamp_player_position(float position) {
   return SDL_clamp(position, 0, WINDOW_HEIGHT - player_size.height);
+}
+
+bool ball_paddle_collision(SDL_FPoint ball_center, int ball_radius,
+                           SDL_FRect paddle) {
+  float ball_top_y = ball_center.y - ball_radius;
+  float ball_bottom_y = ball_center.y + ball_radius;
+
+  float paddle_top_y = paddle.y;
+  float paddle_bottom_y = paddle.y + paddle.h;
+
+  float lowest_y = SDL_min(SDL_min(ball_top_y, ball_bottom_y),
+                           SDL_min(paddle_top_y, paddle_bottom_y));
+  float highest_y = SDL_max(SDL_max(ball_top_y, ball_bottom_y),
+                            SDL_max(paddle_top_y, paddle_bottom_y));
+
+  float total_size_y = highest_y - lowest_y;
+
+  float ball_radii = ball_radius * 2;
+
+  float minimum_size_for_collision_in_y_axis = ball_radii + paddle.h;
+
+  if (total_size_y > minimum_size_for_collision_in_y_axis) {
+    // if greater then it has a gap
+    return false;
+  }
+
+  float ball_top_x = ball_center.x - ball_radius;
+  float ball_bottom_x = ball_center.x + ball_radius;
+
+  float paddle_top_x = paddle.x;
+  float paddle_bottom_x = paddle.x + paddle.w;
+
+  float lowest_x = SDL_min(SDL_min(ball_top_x, ball_bottom_x),
+                           SDL_min(paddle_top_x, paddle_bottom_x));
+  float highest_x = SDL_max(SDL_max(ball_top_x, ball_bottom_x),
+                            SDL_max(paddle_top_x, paddle_bottom_x));
+
+  float total_size_x = highest_x - lowest_x;
+  float minimum_size_for_collision_in_x_axis = ball_radii + paddle.w;
+
+  if (total_size_x > minimum_size_for_collision_in_x_axis) {
+    // if greater then it has a gap
+    return false;
+  }
+
+  return true;
 }
 
 int main(int argc, char *args[]) {
@@ -71,7 +102,7 @@ int main(int argc, char *args[]) {
 
   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
 
-  if (renderer == NULL) {
+  if (renderer == nullptr) {
     fprintf(stderr, "Error creating SDL renderer\n");
     return EXIT_FAILURE;
   }
@@ -102,13 +133,13 @@ int main(int argc, char *args[]) {
 
   float initial_y_position = HALF_WINDOW_H - (player_size.height / 2);
 
+  float player_gap = 0;
   SDL_FPoint player1_position = {
-      .x = 10,
+      .x = player_gap,
       .y = initial_y_position,
   };
-
   SDL_FPoint player2_position = {
-      .x = WINDOW_WIDTH - player_size.width - 10,
+      .x = WINDOW_WIDTH - player_size.width - player_gap,
       .y = initial_y_position,
   };
 
@@ -129,11 +160,15 @@ int main(int argc, char *args[]) {
       .y = HALF_WINDOW_H,
   };
 
-  int ball_radius = 10;
-  int ball_speed = 6;
+  // int ball_radius = 10;
+  // int ball_base_speed = 6;
+  // int ball_speed_x = ball_base_speed;
+  // int ball_speed_y = ball_base_speed;
+  // int ball_speed_increase_x = 1;
+  // int ball_speed_increase_y = 1;
 
-  int invert_x = false;
-  int invert_y = false;
+  int invert_x = 1;
+  int invert_y = 1;
 
   int player1_score = 0;
   int player2_score = 0;
@@ -227,6 +262,36 @@ int main(int argc, char *args[]) {
         .h = player_size.height,
     };
 
+    if (ball_paddle_collision(ball_position, ball_radius, player1_rect)) {
+      invert_x = invert_x == 1 ? -1 : 1;
+      ball_speed_x += ball_speed_increase_x;
+      ball_speed_y += ball_speed_increase_y;
+
+      SDL_FRect player1_section_top = {
+          .x = player1_position.x,
+          .y = player1_position.y,
+          .w = player_size.width,
+          .h = player_size.height / 4,
+      };
+
+      if (ball_paddle_collision(ball_position, ball_radius,
+                                player1_section_top)) {
+        ball_speed_y -= ball_speed_increase_y * 4;
+      }
+
+      SDL_FRect player1_section_bottom = {
+          .x = player1_position.x,
+          .y = player1_position.y + (player_size.height / 4) * 3,
+          .w = player_size.width,
+          .h = player_size.height / 4,
+      };
+
+      if (ball_paddle_collision(ball_position, ball_radius,
+                                player1_section_bottom)) {
+        ball_speed_y += ball_speed_increase_y * 4;
+      }
+    }
+
     SDL_FRect player2_rect = {
         .x = player2_position.x,
         .y = player2_position.y,
@@ -234,21 +299,60 @@ int main(int argc, char *args[]) {
         .h = player_size.height,
     };
 
-    if (SDL_PointInFRect(&ball_position, &player1_rect))
-      invert_x = !invert_x;
+    if (ball_paddle_collision(ball_position, ball_radius, player2_rect)) {
+      invert_x = invert_x == 1 ? -1 : 1;
+      ball_speed_x += ball_speed_increase_x;
+      ball_speed_y += ball_speed_increase_y;
 
-    if (SDL_PointInFRect(&ball_position, &player2_rect))
-      invert_x = !invert_x;
+      SDL_FRect player2_section_top = {
+          .x = player2_position.x,
+          .y = player2_position.y,
+          .w = player_size.width,
+          .h = player_size.height / 4,
+      };
 
-    bool hit_left_wall = ball_position.x - ball_radius + ball_speed < 0;
+      if (ball_paddle_collision(ball_position, ball_radius,
+                                player2_section_top)) {
+        ball_speed_y -= ball_speed_increase_y * 4;
+      }
+
+      SDL_FRect player2_section_bottom = {
+          .x = player2_position.x,
+          .y = player2_position.y + (player_size.height / 4) * 3,
+          .w = player_size.width,
+          .h = player_size.height / 4,
+      };
+
+      if (ball_paddle_collision(ball_position, ball_radius,
+                                player2_section_bottom)) {
+        ball_speed_y += ball_speed_increase_y * 4;
+      }
+    }
+
+    bool hit_left_wall = ball_position.x - ball_radius + ball_speed_x < 0;
     bool hit_right_wall =
-        ball_position.x + ball_radius + ball_speed > WINDOW_WIDTH;
+        ball_position.x + ball_radius + ball_speed_x > WINDOW_WIDTH;
 
-    if (hit_left_wall)
+    if (hit_left_wall) {
       player2_score += 1;
+      // reset ball
+      ball_position = {
+          .x = HALF_WINDOW_W,
+          .y = HALF_WINDOW_H,
+      };
+      ball_speed_x = -ball_base_speed;
+      ball_speed_y = ball_base_speed;
+    }
 
-    if (hit_right_wall)
+    if (hit_right_wall) {
       player1_score += 1;
+      ball_position = {
+          .x = HALF_WINDOW_W,
+          .y = HALF_WINDOW_H,
+      };
+      ball_speed_x = ball_base_speed;
+      ball_speed_y = ball_base_speed;
+    }
 
     if (player1_score == max_score)
       current_game_state = game_over;
@@ -256,15 +360,12 @@ int main(int argc, char *args[]) {
     if (player2_score == max_score)
       current_game_state = game_over;
 
-    if (hit_right_wall || hit_left_wall)
-      invert_x = !invert_x;
+    if (ball_position.y + ball_radius + ball_speed_y > WINDOW_HEIGHT ||
+        ball_position.y - ball_radius + ball_speed_y < 0)
+      invert_y = invert_y == 1 ? -1 : 1;
 
-    if (ball_position.y + ball_radius + ball_speed > WINDOW_HEIGHT ||
-        ball_position.y - ball_radius + ball_speed < 0)
-      invert_y = !invert_y;
-
-    ball_position.x += ball_speed * (invert_x ? -1 : 1);
-    ball_position.y += ball_speed * (invert_y ? -1 : 1);
+    ball_position.x += ball_speed_x * invert_x;
+    ball_position.y += ball_speed_y * invert_y;
 
     // --------- RENDERING --------- //
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
