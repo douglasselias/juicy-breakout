@@ -41,6 +41,9 @@ int main(void) {
           if (current_effects >= (int)game_effects::tween) {
             startTime = SDL_GetTicks64();
             paddle.dimensions.y = -80;
+
+            for (block &b : blocks)
+              b.dimensions.y = b.original_dimensions.y * 10;
           }
         }
         break;
@@ -63,6 +66,7 @@ int main(void) {
 
     update_paddle(paddle, eased_progress);
     update_ball(ball);
+    update_blocks(blocks, eased_progress);
 
     ball_paddle_collision(ball, paddle);
     ball_blocks_collision(ball, blocks);

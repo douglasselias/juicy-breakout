@@ -1,4 +1,5 @@
 #pragma once
+#include <SDL2/SDL_rect.h>
 #include <vector>
 
 #include <SDL2/SDL.h>
@@ -8,6 +9,7 @@
 
 typedef struct block {
   SDL_FRect dimensions;
+  SDL_FRect original_dimensions;
   bool operator==(const block &other) const {
     return dimensions.x == other.dimensions.x &&
            dimensions.y == other.dimensions.y &&
@@ -44,11 +46,27 @@ blocks create_blocks() {
                   .w = width,
                   .h = height,
               },
+          .original_dimensions =
+              {
+                  .x = initial_left_gap + (width * column) +
+                       (between_gap * column),
+                  .y = top_gap + (height * row) + (between_gap * row),
+                  .w = width,
+                  .h = height,
+              },
       };
       blocks.push_back(b);
     }
   }
   return blocks;
+}
+
+void update_blocks(blocks &blocks, float eased_progress) {
+  if (current_effects >= (int)game_effects::tween) {
+    for (block &b : blocks)
+      b.dimensions.y =
+          static_cast<int>(eased_progress * b.original_dimensions.y);
+  }
 }
 
 void render_blocks(blocks blocks) {
