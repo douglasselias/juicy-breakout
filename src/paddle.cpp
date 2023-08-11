@@ -1,74 +1,118 @@
 #pragma once
-#include <SDL2/SDL_render.h>
 #include <cstdint>
+#include <cstdio>
+
+// #include <bitset>
+#include <string>
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 #include "window.cpp"
 
-struct paddle_size {
-  float width;
-  float height;
-};
-using paddle_size = paddle_size;
+typedef struct paddle_input {
+  bool up;
+  bool down;
+} paddle_input;
+// std::bitset<2> paddle_input("00");
 
-paddle_size player_size = {
-    .width = 20,
-    .height = 100,
-};
+typedef struct paddle_keys {
+  SDL_Keycode up;
+  SDL_Keycode down;
+} paddle_keys;
 
-typedef struct player_input {
-  uint8_t up;
-  uint8_t down;
-} player_input;
+typedef struct paddle_entity {
+  SDL_FRect dimensions;
+  uint score;
+  paddle_input input;
+  paddle_keys keys;
+} paddle_entity;
 
-float initial_y_position = HALF_WINDOW_H - (player_size.height / 2);
-float player_gap = 0;
-
-SDL_FPoint player1_position = {
-    .x = player_gap,
-    .y = initial_y_position,
-};
-SDL_FPoint player2_position = {
-    .x = WINDOW_WIDTH - player_size.width - player_gap,
-    .y = initial_y_position,
+enum class paddle_side {
+  left,
+  right,
 };
 
-player_input player1_input = {
-    .up = 0,
-    .down = 0,
-};
+paddle_entity create_paddle(paddle_side side, paddle_keys keys) {
+  const float gap = 20;
+  const float width = 20;
+  const float height = 100;
 
-player_input player2_input = {
-    .up = 0,
-    .down = 0,
-};
-
-int paddle_speed = 10;
-
-int player1_score = 0;
-int player2_score = 0;
-
-float clamp_player_position(float position) {
-  return SDL_clamp(position, 0, WINDOW_HEIGHT - player_size.height);
+  return {
+      .dimensions =
+          {
+              .x = side == paddle_side::left ? gap : WINDOW_WIDTH - width - gap,
+              .y = HALF_WINDOW_H - (height / 2),
+              .w = width,
+              .h = height,
+          },
+      .score = 0,
+      .input =
+          {
+              .up = false,
+              .down = false,
+          },
+      .keys = keys,
+  };
 }
 
-void render_player1(SDL_Renderer *renderer) {
-  SDL_FRect player1 = {
-      .x = player1_position.x,
-      .y = player1_position.y,
-      .w = player_size.width,
-      .h = player_size.height,
-  };
-  SDL_RenderFillRectF(renderer, &player1);
+void input_paddle(paddle_entity &paddle, SDL_EventType event_type,
+                  SDL_Keycode key_pressed) {
+#pragma clang diagnostic ignored "-Wswitch"
+  switch (event_type) {
+  case SDL_KEYDOWN:
+    if (key_pressed == paddle.keys.up) {
+      paddle.input.up = true;
+    }
+    if (key_pressed == paddle.keys.down) {
+      paddle.input.down = true;
+    }
+    break;
+  case SDL_KEYUP:
+    if (key_pressed == paddle.keys.up) {
+      paddle.input.up = false;
+    }
+    if (key_pressed == paddle.keys.down) {
+      paddle.input.down = false;
+    }
+  }
 }
 
-void render_player2(SDL_Renderer *renderer) {
-  SDL_FRect player2 = {
-      .x = player2_position.x,
-      .y = player2_position.y,
-      .w = player_size.width,
-      .h = player_size.height,
+void update_paddle(paddle_entity &paddle) {
+  const int paddle_speed = 10;
+
+  if (paddle.input.up)
+    paddle.dimensions.y = SDL_clamp(paddle.dimensions.y - paddle_speed, 0,
+                                    WINDOW_HEIGHT - paddle.dimensions.h);
+
+  if (paddle.input.down)
+    paddle.dimensions.y = SDL_clamp(paddle.dimensions.y + paddle_speed, 0,
+                                    WINDOW_HEIGHT - paddle.dimensions.h);
+}
+
+void render_paddle(SDL_Renderer *renderer, paddle_entity *paddle) {
+  SDL_RenderFillRectF(renderer, &paddle->dimensions);
+}
+
+void render_score(TTF_Font *font, SDL_Renderer *renderer, paddle_side side,
+                  paddle_entity paddle) {
+  int padding = side == paddle_side::left ? 4 : 2;
+  int direction = side == paddle_side::left ? -1 : 1;
+
+  SDL_Color text_color = {255, 255, 255, 255};
+
+  SDL_Surface *surface = TTF_RenderText_Solid(
+      font, std::to_string(paddle.score).c_str(), text_color);
+  SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+  SDL_Rect dstrect = {
+      .x = HALF_WINDOW_W + (surface->w * padding) * direction,
+      .y = 15,
+      .w = surface->w * 2,
+      .h = surface->h * 2,
   };
-  SDL_RenderFillRectF(renderer, &player2);
+  SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+
+  SDL_DestroyTexture(texture);
+  SDL_FreeSurface(surface);
 }

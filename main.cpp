@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-
 #include <string>
 
 #include <SDL2/SDL.h>
@@ -12,9 +11,10 @@
 #include <box2d/box2d.h>
 
 #include "src/ball.cpp"
+#include "src/font.cpp"
 #include "src/paddle.cpp"
-#include "src/score.cpp"
 #include "src/window.cpp"
+#include "src/game_state.cpp"
 
 b2Vec2 gravity(0.0f, 0.0f);
 b2World world(gravity);
@@ -65,154 +65,56 @@ bool ball_paddle_collision(SDL_FPoint ball_center, int ball_radius,
   return true;
 }
 
-int main(int argc, char *args[]) {
-  if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-    fprintf(stderr, "Error initializing SDL\n");
-    return EXIT_FAILURE;
-  }
+paddle_entity paddle1 =
+    create_paddle(paddle_side::left, {.up = SDLK_w, .down = SDLK_s});
+paddle_entity paddle2 =
+    create_paddle(paddle_side::right, {.up = SDLK_i, .down = SDLK_k});
 
-  SDL_Window *window =
-      SDL_CreateWindow(NULL, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                       WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_BORDERLESS);
+int main(void) {
+  SDL_Renderer *renderer = create_window();
+  TTF_Font *font = load_font();
 
-  if (window == NULL) {
-    fprintf(stderr, "Error creating SDL window\n");
-    return EXIT_FAILURE;
-  }
-
-  if (TTF_Init() == -1) {
-    fprintf(stderr, "SDL_ttf initialization failed: %s", TTF_GetError());
-    return EXIT_FAILURE;
-  }
-
-  SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
-
-  if (renderer == nullptr) {
-    fprintf(stderr, "Error creating SDL renderer\n");
-    return EXIT_FAILURE;
-  }
-
-  TTF_Font *font = TTF_OpenFont("PressStart2P.ttf", 16);
-  if (font == NULL) {
-    fprintf(stderr, "Font loading failed: %s", TTF_GetError());
-    return EXIT_FAILURE;
-  }
-
-  SDL_Color text_color = {255, 255, 255, 255};
-  SDL_Surface *game_over_surface =
-      TTF_RenderText_Solid(font, "Game over", text_color);
-  if (game_over_surface == NULL) {
-    fprintf(stderr, "Text rendering failed: %s", TTF_GetError());
-    return EXIT_FAILURE;
-  }
-
-  SDL_Texture *game_over_texture =
-      SDL_CreateTextureFromSurface(renderer, game_over_surface);
-  if (game_over_texture == NULL) {
-    fprintf(stderr, "Texture creation failed: %s", SDL_GetError());
-    return EXIT_FAILURE;
-  }
-
-  // setup();
-  int game_is_running = true;
-
-  enum game_state {
-    menu,
-    playing,
-    game_over,
-  };
-  int current_game_state = menu;
-  int max_score = 1;
+  game_over_render_data game_over_text = create_game_over_text(renderer);
 
   while (game_is_running) {
     // --------- PROCESS INPUT --------- //
     SDL_Event event;
     SDL_PollEvent(&event);
 
+    input_paddle(paddle1, (SDL_EventType)event.type, event.key.keysym.sym);
+    input_paddle(paddle2, (SDL_EventType)event.type, event.key.keysym.sym);
+
     switch (event.type) {
     case SDL_QUIT:
-      game_is_running = false;
+      quit_game();
       break;
     case SDL_KEYDOWN:
       switch (event.key.keysym.sym) {
       case SDLK_ESCAPE:
-        game_is_running = false;
-        break;
-
-      case SDLK_w:
-        player1_input.up = 1;
-        break;
-      case SDLK_s:
-        player1_input.down = 1;
-        break;
-
-      case SDLK_i:
-        player2_input.up = 1;
-        break;
-      case SDLK_k:
-        player2_input.down = 1;
-        break;
-      }
-      break;
-    case SDL_KEYUP:
-      switch (event.key.keysym.sym) {
-      case SDLK_w:
-        player1_input.up = 0;
-        break;
-      case SDLK_s:
-        player1_input.down = 0;
-        break;
-
-      case SDLK_i:
-        player2_input.up = 0;
-        break;
-      case SDLK_k:
-        player2_input.down = 0;
+        quit_game();
         break;
       }
       break;
     }
 
     // --------- UPDATE --------- //
-    // cap framerate to 60 fps
-    int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - last_frame_time);
-    if (time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME) {
-      SDL_Delay(time_to_wait);
-    }
-    float delta_time = (SDL_GetTicks() - last_frame_time) /
-                       1000.0f; // converted to seconds by dividing by 1000.0f
-    last_frame_time = SDL_GetTicks();
+    cap_framerate();
+    float delta_time = get_delta_time();
+    last_frame_time = SDL_GetTicks64();
 
-    if (player1_input.up)
-      player1_position.y =
-          clamp_player_position(player1_position.y - paddle_speed);
-    if (player1_input.down)
-      player1_position.y =
-          clamp_player_position(player1_position.y + paddle_speed);
-    if (player2_input.up)
-      player2_position.y =
-          clamp_player_position(player2_position.y - paddle_speed);
-    if (player2_input.down)
-      player2_position.y =
-          clamp_player_position(player2_position.y + paddle_speed);
+    update_paddle(paddle1);
+    update_paddle(paddle2);
 
-    SDL_FRect player1_rect = {
-        .x = player1_position.x,
-        .y = player1_position.y,
-        .w = player_size.width,
-        .h = player_size.height,
-    };
-
-    if (ball_paddle_collision(ball_position, ball_radius, player1_rect)) {
+    if (ball_paddle_collision(ball_position, ball_radius, paddle1.dimensions)) {
       invert_x = invert_x == 1 ? -1 : 1;
       ball_speed_x += ball_speed_increase_x;
       ball_speed_y += ball_speed_increase_y;
 
       SDL_FRect player1_section_top = {
-          .x = player1_position.x,
-          .y = player1_position.y,
-          .w = player_size.width,
-          .h = player_size.height / 4,
+          .x = paddle1.dimensions.x,
+          .y = paddle1.dimensions.y,
+          .w = paddle1.dimensions.w,
+          .h = paddle1.dimensions.h / 4,
       };
 
       if (ball_paddle_collision(ball_position, ball_radius,
@@ -221,10 +123,10 @@ int main(int argc, char *args[]) {
       }
 
       SDL_FRect player1_section_bottom = {
-          .x = player1_position.x,
-          .y = player1_position.y + (player_size.height / 4) * 3,
-          .w = player_size.width,
-          .h = player_size.height / 4,
+          .x = paddle1.dimensions.x,
+          .y = paddle1.dimensions.y + (paddle1.dimensions.h / 4) * 3,
+          .w = paddle1.dimensions.w,
+          .h = paddle1.dimensions.h / 4,
       };
 
       if (ball_paddle_collision(ball_position, ball_radius,
@@ -233,23 +135,16 @@ int main(int argc, char *args[]) {
       }
     }
 
-    SDL_FRect player2_rect = {
-        .x = player2_position.x,
-        .y = player2_position.y,
-        .w = player_size.width,
-        .h = player_size.height,
-    };
-
-    if (ball_paddle_collision(ball_position, ball_radius, player2_rect)) {
+    if (ball_paddle_collision(ball_position, ball_radius, paddle2.dimensions)) {
       invert_x = invert_x == 1 ? -1 : 1;
       ball_speed_x += ball_speed_increase_x;
       ball_speed_y += ball_speed_increase_y;
 
       SDL_FRect player2_section_top = {
-          .x = player2_position.x,
-          .y = player2_position.y,
-          .w = player_size.width,
-          .h = player_size.height / 4,
+          .x = paddle2.dimensions.x,
+          .y = paddle2.dimensions.y,
+          .w = paddle2.dimensions.w,
+          .h = paddle2.dimensions.h / 4,
       };
 
       if (ball_paddle_collision(ball_position, ball_radius,
@@ -258,10 +153,10 @@ int main(int argc, char *args[]) {
       }
 
       SDL_FRect player2_section_bottom = {
-          .x = player2_position.x,
-          .y = player2_position.y + (player_size.height / 4) * 3,
-          .w = player_size.width,
-          .h = player_size.height / 4,
+          .x = paddle2.dimensions.x,
+          .y = paddle2.dimensions.y + (paddle2.dimensions.h / 4) * 3,
+          .w = paddle2.dimensions.w,
+          .h = paddle2.dimensions.h / 4,
       };
 
       if (ball_paddle_collision(ball_position, ball_radius,
@@ -270,82 +165,37 @@ int main(int argc, char *args[]) {
       }
     }
 
-    bool hit_left_wall = ball_position.x - ball_radius + ball_speed_x < 0;
-    bool hit_right_wall =
-        ball_position.x + ball_radius + ball_speed_x > WINDOW_WIDTH;
+    update_ball(paddle1, paddle2);
 
-    if (hit_left_wall) {
-      player2_score += 1;
-      // reset ball
-      ball_position = {
-          .x = HALF_WINDOW_W,
-          .y = HALF_WINDOW_H,
-      };
-      ball_speed_x = -ball_base_speed;
-      ball_speed_y = ball_base_speed;
-    }
-
-    if (hit_right_wall) {
-      player1_score += 1;
-      ball_position = {
-          .x = HALF_WINDOW_W,
-          .y = HALF_WINDOW_H,
-      };
-      ball_speed_x = ball_base_speed;
-      ball_speed_y = ball_base_speed;
-    }
-
-    if (player1_score == max_score)
+    if (paddle1.score == max_score)
       current_game_state = game_over;
 
-    if (player2_score == max_score)
+    if (paddle2.score == max_score)
       current_game_state = game_over;
-
-    if (ball_position.y + ball_radius + ball_speed_y > WINDOW_HEIGHT ||
-        ball_position.y - ball_radius + ball_speed_y < 0)
-      invert_y = invert_y == 1 ? -1 : 1;
-
-    ball_position.x += ball_speed_x * invert_x;
-    ball_position.y += ball_speed_y * invert_y;
 
     // --------- RENDERING --------- //
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
-
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
-    draw_score(font, renderer, text_color, true);
-    draw_score(font, renderer, text_color, false);
+    render_score(font, renderer, paddle_side::left, paddle1);
+    render_score(font, renderer, paddle_side::right, paddle2);
 
     if (current_game_state == game_over) {
-      SDL_Rect game_over_dstrect = {};
-      game_over_dstrect.x = HALF_WINDOW_W - game_over_surface->w;
-      game_over_dstrect.y = HALF_WINDOW_H - game_over_surface->h;
-      game_over_dstrect.w = game_over_surface->w * 2;
-      game_over_dstrect.h = game_over_surface->h * 2;
-      SDL_RenderCopy(renderer, game_over_texture, NULL, &game_over_dstrect);
+      SDL_RenderCopy(renderer, game_over_text.texture, NULL,
+                     &game_over_text.dstrect);
     }
 
-    float radius = (float)WINDOW_HEIGHT / 2;
-    draw_circle(renderer, ball_position.x, ball_position.y, ball_radius);
+    render_ball(renderer, ball_position);
+
     SDL_RenderDrawLine(renderer, WINDOW_WIDTH / 2, 0, WINDOW_WIDTH / 2,
                        WINDOW_HEIGHT);
 
-    render_player1(renderer);
-    render_player2(renderer);
+    render_paddle(renderer, &paddle1);
+    render_paddle(renderer, &paddle2);
 
     SDL_RenderPresent(renderer); // double buffer swap
   }
-
-  SDL_FreeSurface(game_over_surface);
-  SDL_DestroyTexture(game_over_texture);
-  TTF_CloseFont(font);
-
-  SDL_DestroyRenderer(renderer);
-  SDL_DestroyWindow(window);
-
-  TTF_Quit();
-  SDL_Quit();
 
   return EXIT_SUCCESS;
 }
