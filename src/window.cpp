@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_rect.h>
 #include <SDL2/SDL_render.h>
 
 const int window_width = 1280;
@@ -43,3 +44,5 @@ void clear_window() {
 }
 
 void swap_buffers() { SDL_RenderPresent(renderer); }
+
+void render_rect(SDL_FRect* rect) { SDL_RenderFillRectF(renderer, rect); }
