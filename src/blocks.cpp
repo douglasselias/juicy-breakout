@@ -1,11 +1,18 @@
-#include <SDL2/SDL.h>
-
+#pragma once
 #include <vector>
+
+#include <SDL2/SDL.h>
 
 #include "window.cpp"
 
 typedef struct block {
   SDL_FRect dimensions;
+  bool operator==(const block &other) const {
+    return dimensions.x == other.dimensions.x &&
+           dimensions.y == other.dimensions.y &&
+           dimensions.w == other.dimensions.w &&
+           dimensions.h == other.dimensions.h;
+  }
 } block;
 
 using blocks = std::vector<block>;
