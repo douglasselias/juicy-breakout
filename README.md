@@ -7,13 +7,8 @@ Press `N` to go to **next** effect and `B` to go **back**
 ## 'Juiciness' list
 
 - Color
-- Tweening (when entering the screen)
-  - Position
-  - Rotation
-  - Scale
-- Squash and Stretch
-  - Paddle
-  - Ball
+- Tweening (position, rotation and scale) when entering the screen
+- Squash and Stretch (ball and paddle)
 - Sound
   - SFX: when ball hits the walls, bricks and paddle
   - BGM

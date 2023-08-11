@@ -2,6 +2,7 @@
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_rect.h>
+#include <SDL2/SDL_timer.h>
 
 #include "src/ball.cpp"
 #include "src/blocks.cpp"
@@ -17,6 +18,10 @@ int main(void) {
   blocks blocks = create_blocks();
   SDL_FRect ball = create_ball();
 
+  Uint32 startTime = SDL_GetTicks64();
+  float progress = 0;
+  float eased_progress = 0;
+
   while (game_is_running) {
     SDL_Event event;
     SDL_PollEvent(&event);
@@ -31,10 +36,24 @@ int main(void) {
           current_effects -= 1;
         break;
       case SDLK_n:
-        if (current_effects < 40)
+        if (current_effects < 40) {
           current_effects += 1;
+          if (current_effects >= (int)game_effects::tween) {
+            startTime = SDL_GetTicks64();
+            paddle.dimensions.y = -80;
+          }
+        }
         break;
       }
+    }
+
+    if (current_effects >= (int)game_effects::tween) {
+      Uint32 currentTime = SDL_GetTicks64();
+      progress = static_cast<float>(currentTime - startTime) / duration;
+      if (progress > 1.0f)
+        progress = 1.0f;
+
+      eased_progress = ease_in_out_quart(progress);
     }
 
     input_paddle(paddle, (SDL_EventType)event.type, event.key.keysym.sym);
@@ -42,7 +61,7 @@ int main(void) {
     cap_framerate();
     last_frame_time = SDL_GetTicks64();
 
-    update_paddle(paddle);
+    update_paddle(paddle, eased_progress);
     update_ball(ball);
 
     ball_paddle_collision(ball, paddle);
@@ -53,6 +72,7 @@ int main(void) {
     render_paddle(&paddle);
     render_ball(ball);
     render_blocks(blocks);
+
     swap_buffers();
   }
 }
