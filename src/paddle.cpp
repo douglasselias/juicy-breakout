@@ -67,9 +67,6 @@ void input_paddle(paddle_entity &paddle, SDL_EventType event_type,
 #pragma clang diagnostic pop
 }
 
-// Duration of the tween in milliseconds
-const Uint32 duration = 2000;
-
 void update_paddle(paddle_entity &paddle, float eased_progress) {
   const int paddle_speed = 20;
   const int max_width = window_width - paddle.dimensions.w;
@@ -83,8 +80,8 @@ void update_paddle(paddle_entity &paddle, float eased_progress) {
         SDL_clamp(paddle.dimensions.x + paddle_speed, 0, max_width);
 
   if (current_effects >= (int)game_effects::tween) {
-    paddle.dimensions.y = static_cast<int>(
-        eased_progress * (window_height - paddle.dimensions.h - 20));
+    paddle.dimensions.y =
+        eased_progress * (window_height - paddle.dimensions.h - 20);
   }
 }
 

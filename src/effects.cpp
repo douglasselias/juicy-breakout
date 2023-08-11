@@ -17,3 +17,12 @@ float lerp(float &x, float target) {
 float ease_in_out_quart(float x) {
   return x < 0.5 ? 8 * x * x * x * x : 1 - SDL_pow(-2 * x + 2, 4) / 2;
 }
+
+float ease_in_out_back(float x) {
+  const float c1 = 1.70158;
+  const float c2 = c1 * 1.525;
+
+  return x < 0.5
+             ? (SDL_pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2
+             : (SDL_pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
+}

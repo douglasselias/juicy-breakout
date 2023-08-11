@@ -18,9 +18,11 @@ int main(void) {
   blocks blocks = create_blocks();
   SDL_FRect ball = create_ball();
 
-  Uint32 startTime = SDL_GetTicks64();
+  Uint32 start_time = SDL_GetTicks64();
   float progress = 0;
   float eased_progress = 0;
+  // Duration of the tween in milliseconds
+  const Uint32 duration = 1200;
 
   while (game_is_running) {
     SDL_Event event;
@@ -39,8 +41,8 @@ int main(void) {
         if (current_effects < 40) {
           current_effects += 1;
           if (current_effects >= (int)game_effects::tween) {
-            startTime = SDL_GetTicks64();
-            paddle.dimensions.y = -80;
+            start_time = SDL_GetTicks64();
+            paddle.dimensions.y = -800;
 
             for (block &b : blocks)
               b.dimensions.y = b.original_dimensions.y * 10;
@@ -51,12 +53,12 @@ int main(void) {
     }
 
     if (current_effects >= (int)game_effects::tween) {
-      Uint32 currentTime = SDL_GetTicks64();
-      progress = static_cast<float>(currentTime - startTime) / duration;
+      Uint32 current_time = SDL_GetTicks64();
+      progress = static_cast<float>(current_time - start_time) / duration;
       if (progress > 1.0f)
         progress = 1.0f;
 
-      eased_progress = ease_in_out_quart(progress);
+      eased_progress = ease_in_out_back(progress);
     }
 
     input_paddle(paddle, (SDL_EventType)event.type, event.key.keysym.sym);
