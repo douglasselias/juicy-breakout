@@ -8,7 +8,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include <box2d/box2d.h>
+// #include <box2d/box2d.h>
 
 #include "ball.cpp"
 #include "font.cpp"
@@ -16,8 +16,8 @@
 #include "paddle.cpp"
 #include "window.cpp"
 
-b2Vec2 gravity(0.0f, 0.0f);
-b2World world(gravity);
+// b2Vec2 gravity(0.0f, 0.0f);
+// b2World world(gravity);
 
 bool ball_paddle_collision(SDL_FPoint ball_center, int ball_radius,
                            SDL_FRect paddle) {
@@ -94,7 +94,7 @@ int main(void) {
 
     // --------- UPDATE --------- //
     cap_framerate();
-    float delta_time = get_delta_time();
+    // float delta_time = get_delta_time();
     last_frame_time = SDL_GetTicks64();
 
     switch (current_game_state) {
