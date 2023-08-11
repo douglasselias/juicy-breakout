@@ -10,11 +10,11 @@
 #include <SDL2/SDL_ttf.h>
 #include <box2d/box2d.h>
 
-#include "src/ball.cpp"
-#include "src/font.cpp"
-#include "src/game_state.cpp"
-#include "src/paddle.cpp"
-#include "src/window.cpp"
+#include "ball.cpp"
+#include "font.cpp"
+#include "game_state.cpp"
+#include "paddle.cpp"
+#include "window.cpp"
 
 b2Vec2 gravity(0.0f, 0.0f);
 b2World world(gravity);
