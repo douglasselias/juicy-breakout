@@ -47,7 +47,7 @@ void input_game_state(SDL_EventType event_type, SDL_Keycode key_pressed,
   }
 }
 
-uint max_score = 1;
+uint max_score = 3;
 void update_game_over(paddle_entity paddle) {
   if (paddle.score == max_score)
     current_game_state = game_over;
