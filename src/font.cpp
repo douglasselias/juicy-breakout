@@ -31,15 +31,35 @@ void render_text(SDL_Renderer *renderer, SDL_FPoint position,
   SDL_FreeSurface(surface);
 }
 
-typedef struct game_over_render_data {
+typedef struct text_render_data {
   SDL_Texture *texture;
   SDL_Rect dstrect;
-} game_over_render_data;
+} text_render_data;
 
-game_over_render_data create_game_over_text(SDL_Renderer *renderer) {
+text_render_data create_game_over_text(SDL_Renderer *renderer) {
   SDL_Color text_color = {255, 255, 255, 255};
   SDL_Surface *game_over_surface =
       TTF_RenderText_Solid(font, "Game over", text_color);
+  SDL_Texture *game_over_texture =
+      SDL_CreateTextureFromSurface(renderer, game_over_surface);
+
+  SDL_Rect game_over_dstrect = {
+      .x = HALF_WINDOW_W - game_over_surface->w,
+      .y = HALF_WINDOW_H - game_over_surface->h,
+      .w = game_over_surface->w * 2,
+      .h = game_over_surface->h * 2,
+  };
+
+  return {
+      .texture = game_over_texture,
+      .dstrect = game_over_dstrect,
+  };
+}
+
+text_render_data create_start_game_text(SDL_Renderer *renderer) {
+  SDL_Color text_color = {255, 255, 255, 255};
+  SDL_Surface *game_over_surface =
+      TTF_RenderText_Solid(font, "Press start", text_color);
   SDL_Texture *game_over_texture =
       SDL_CreateTextureFromSurface(renderer, game_over_surface);
 
