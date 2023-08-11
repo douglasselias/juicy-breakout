@@ -1,25 +1,20 @@
 # Juicy Breakout
 
-Based on this [video about game 'juice'](https://www.youtube.com/watch?v=Fy0aCDmgnxg)
+Based on this [video about game 'juice'](https://www.youtube.com/watch?v=Fy0aCDmgnxg). This game has some of the effects shown on the video.
 
 Press `N` to go to **next** effect and `B` to go **back**
 
 ## 'Juiciness' list
 
 - Color
-- Tweening (position, rotation and scale) when entering the screen
-- Squash and Stretch (ball and paddle)
-- Sound
-  - SFX: when ball hits the walls, bricks and paddle
-  - BGM
-- Particles
-  - Smoke (when ball hits something)
-  - Brick shatter (when hit)
-  - Ball trail
-  - Confetti when ball hits the paddle
-- Slow-Mo when ball is about to hit the brick (Similar to Hit Stop, see below)
+- Tweening position of the blocks
+- Squash and Stretch on the paddle
+- SFX
+- BGM
+- Smoke Particles when ball hits something
+- Ball trail
+- Confetti when ball hits the paddle
 - Screen Shake
-- Character/Personality
-  - Eyes on the paddle, track the ball and blink (can also make the eyes bigger)
-  - Mouth on the paddle, happy when ball bounces on it, frown when the ball is far away
+- Eyes on the paddle that tracks the ball and blink
+- Mouth on the paddle, happy when ball bounces on it, frown when the ball is far away
 - Bonus: [Hit stop by Sakurai](https://www.youtube.com/watch?v=OdVkEOzdCPw)

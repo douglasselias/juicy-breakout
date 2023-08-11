@@ -5,6 +5,16 @@
 enum class game_effects {
   color,
   tween,
+  paddle_squash_strech,
+  sfx,
+  bgm,
+  ball_smoke_particles,
+  ball_trail,
+  paddle_confetti,
+  screen_shake,
+  paddle_eyes, // follow ball blink
+  paddle_mouth, // happy when bounce, frown when ball is far away
+  hit_stop, // slow-mo when hits the blocks
 };
 
 int current_effects = -1;
