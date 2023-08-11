@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL.h>
 
+#include "effects.cpp"
 #include "window.cpp"
 
 typedef struct block {
@@ -51,6 +52,12 @@ blocks create_blocks() {
 }
 
 void render_blocks(blocks blocks) {
+  if (current_effects >= (int)game_effects::color)
+    SDL_SetRenderDrawColor(renderer, 230, 41, 55, 255);
+
   for (block b : blocks)
     render_rect(&b.dimensions);
+
+  if (current_effects >= (int)game_effects::color)
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 }

@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "blocks.cpp"
+#include "effects.cpp"
 #include "paddle.cpp"
 #include "window.cpp"
 
@@ -61,4 +62,12 @@ void update_ball(SDL_FRect &ball) {
   ball.y += ball_speed.y;
 }
 
-void render_ball(SDL_FRect ball) { render_rect(&ball); }
+void render_ball(SDL_FRect ball) {
+  if (current_effects >= (int)game_effects::color)
+    SDL_SetRenderDrawColor(renderer, 255, 203, 0, 255);
+
+  render_rect(&ball);
+
+  if (current_effects >= (int)game_effects::color)
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+}

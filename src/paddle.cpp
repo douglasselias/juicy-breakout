@@ -6,6 +6,7 @@
 
 #include <SDL2/SDL.h>
 
+#include "effects.cpp"
 #include "window.cpp"
 
 typedef struct paddle_input {
@@ -79,4 +80,12 @@ void update_paddle(paddle_entity &paddle) {
         SDL_clamp(paddle.dimensions.x + paddle_speed, 0, max_width);
 }
 
-void render_paddle(paddle_entity *paddle) { render_rect(&paddle->dimensions); }
+void render_paddle(paddle_entity *paddle) {
+  if (current_effects >= (int)game_effects::color)
+    SDL_SetRenderDrawColor(renderer, 255, 161, 0, 255);
+
+  render_rect(&paddle->dimensions);
+
+  if (current_effects >= (int)game_effects::color)
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+}

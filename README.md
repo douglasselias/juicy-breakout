@@ -15,8 +15,7 @@ Press `N` to go to **next** effect and `B` to go **back**
   - Paddle
   - Ball
 - Sound
-  - SFX
-    - When ball hits the walls, bricks and paddle
+  - SFX: when ball hits the walls, bricks and paddle
   - BGM
 - Particles
   - Smoke (when ball hits something)

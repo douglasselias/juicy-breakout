@@ -85,7 +85,7 @@ int main(void) {
     input_game_state((SDL_EventType)event.type, event.key.keysym.sym, paddle1,
                      paddle2, ball_position);
 
-    switch (current_game_state) {
+    switch (current_effects) {
     case playing:
       input_paddle(paddle1, (SDL_EventType)event.type, event.key.keysym.sym);
       input_paddle(paddle2, (SDL_EventType)event.type, event.key.keysym.sym);
@@ -97,7 +97,7 @@ int main(void) {
     // float delta_time = get_delta_time();
     last_frame_time = SDL_GetTicks64();
 
-    switch (current_game_state) {
+    switch (current_effects) {
     case playing:
       update_paddle(paddle1);
       update_paddle(paddle2);
@@ -176,7 +176,7 @@ int main(void) {
     SDL_RenderClear(renderer);
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
-    switch (current_game_state) {
+    switch (current_effects) {
     case game_over:
       SDL_RenderCopy(renderer, game_over_text.texture, NULL,
                      &game_over_text.dstrect);

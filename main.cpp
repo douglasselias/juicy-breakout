@@ -5,13 +5,10 @@
 
 #include "src/ball.cpp"
 #include "src/blocks.cpp"
+#include "src/effects.cpp"
 #include "src/paddle.cpp"
 #include "src/window.cpp"
 
-enum game_state {
-  main_menu,
-};
-int current_game_state = main_menu;
 bool game_is_running = true;
 
 int main(void) {
@@ -28,6 +25,15 @@ int main(void) {
       switch (event.key.keysym.sym) {
       case SDLK_ESCAPE:
         game_is_running = false;
+        break;
+      case SDLK_b:
+        if (current_effects > -1)
+          current_effects -= 1;
+        break;
+      case SDLK_n:
+        if (current_effects < 40)
+          current_effects += 1;
+        break;
       }
     }
 
