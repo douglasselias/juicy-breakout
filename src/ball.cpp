@@ -12,8 +12,14 @@
 #include "window.cpp"
 
 Mix_Chunk *sfx;
+
 bool shake = false;
 Uint32 shake_ticks = SDL_GetTicks64();
+
+bool slow_motion = false;
+float slow_factor = 0.3f;
+float slow_motion_duration = 700;
+Uint32 slow_motion_ticks = SDL_GetTicks64();
 
 SDL_FRect create_ball() {
   SDL_FRect ball = {
@@ -27,9 +33,19 @@ SDL_FRect create_ball() {
 }
 
 SDL_FPoint ball_speed = {
-    .x = -0.5,
-    .y = 3,
+    .x = -1,
+    .y = 2,
 };
+
+void applySlowMotion() {
+  ball_speed.x *= slow_factor;
+  ball_speed.y *= slow_factor;
+}
+
+void restoreSlowMotion() {
+  ball_speed.x /= slow_factor;
+  ball_speed.y /= slow_factor;
+}
 
 bool check_aabb_collision(SDL_FRect rect1, SDL_FRect rect2) {
   return (rect1.x < rect2.x + rect2.w && rect1.x + rect1.w > rect2.x &&
@@ -58,6 +74,13 @@ void ball_blocks_collision(SDL_FRect ball, blocks &blocks) {
         shake = true;
         shake_ticks = SDL_GetTicks64();
       }
+      if (current_effects >= (int)game_effects::hit_stop) {
+        if (slow_motion == false) {
+          slow_motion = true;
+          applySlowMotion();
+          slow_motion_ticks = SDL_GetTicks64();
+        }
+      }
       blocks.erase(std::remove(blocks.begin(), blocks.end(), b), blocks.end());
     }
   }
@@ -77,8 +100,8 @@ void update_ball(SDL_FRect &ball, float delta_time) {
       play_audio(sfx);
   }
 
-  ball.x = ball.x + ball_speed.x;
-  ball.y = ball.y + ball_speed.y;
+  ball.x += ball_speed.x;
+  ball.y += ball_speed.y;
 
   SDL_FPoint p = {.x = ball.x + ball.w / 2, .y = ball.y};
   trail.push_back(p);

@@ -116,6 +116,14 @@ int main(void) {
       }
     }
 
+    if (slow_motion) {
+      float elapsed = SDL_GetTicks64() - slow_motion_ticks;
+      if (elapsed > slow_motion_duration) {
+        restoreSlowMotion();
+        slow_motion = false;
+      }
+    }
+
     clear_window();
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     render_paddle(&paddle);

@@ -11,11 +11,11 @@ enum class game_effects {
   ball_trail,
   screen_shake,
   paddle_eyes,
-  paddle_mouth, // happy when bounce, frown when ball is far away
-  hit_stop,     // slow-mo when hits the paddle
+  paddle_mouth,
+  hit_stop,
 };
 
-int current_effects = 8;
+int current_effects = 9;
 
 float lerp(float &x, float target) {
   x += (target - x) * 0.1;
