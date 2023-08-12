@@ -5,7 +5,6 @@
 enum class game_effects {
   color,
   tween,
-  paddle_squash_strech,
   sfx,
   bgm,
   ball_smoke_particles,
@@ -17,7 +16,7 @@ enum class game_effects {
   hit_stop, // slow-mo when hits the blocks
 };
 
-int current_effects = -1;
+int current_effects = 2;
 
 float lerp(float &x, float target) {
   x += (target - x) * 0.1;

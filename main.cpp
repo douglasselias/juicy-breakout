@@ -3,6 +3,7 @@
 #include <SDL2/SDL_keycode.h>
 #include <SDL2/SDL_rect.h>
 #include <SDL2/SDL_timer.h>
+#include <cstdio>
 
 #include "src/ball.cpp"
 #include "src/blocks.cpp"
@@ -14,7 +15,7 @@ bool game_is_running = true;
 
 int main(void) {
   SDL_Renderer *renderer = create_window();
-  paddle_entity paddle = create_paddle({.left = SDLK_a, .right = SDLK_d});
+  paddle_entity paddle = create_paddle();
   blocks blocks = create_blocks();
   SDL_FRect ball = create_ball();
 
@@ -27,6 +28,10 @@ int main(void) {
   while (game_is_running) {
     SDL_Event event;
     SDL_PollEvent(&event);
+
+    int mouse_x, mouse_y;
+    SDL_GetMouseState(&mouse_x, &mouse_y);
+
     switch (event.type) {
     case SDL_KEYDOWN:
       switch (event.key.keysym.sym) {
@@ -61,13 +66,12 @@ int main(void) {
       eased_progress = ease_in_out_back(progress);
     }
 
-    input_paddle(paddle, (SDL_EventType)event.type, event.key.keysym.sym);
-
     cap_framerate();
+    float delta_time = get_delta_time();
     last_frame_time = SDL_GetTicks64();
 
-    update_paddle(paddle, eased_progress);
-    update_ball(ball);
+    update_paddle(paddle, eased_progress, mouse_x);
+    update_ball(ball, delta_time);
     update_blocks(blocks, eased_progress);
 
     ball_paddle_collision(ball, paddle);

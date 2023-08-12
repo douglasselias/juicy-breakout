@@ -23,7 +23,7 @@ SDL_Renderer *create_window() {
 }
 
 void cap_framerate() {
-  const int fps = 60;
+  const int fps = 120 + 60;
   const float one_second = 1000;
   const float frame_target_time = one_second / fps;
 

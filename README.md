@@ -8,7 +8,6 @@ Press `N` to go to **next** effect and `B` to go **back**
 
 - Color
 - Tweening position of the blocks
-- Squash and Stretch on the paddle
 - SFX
 - BGM
 - Smoke Particles when ball hits something

@@ -20,8 +20,8 @@ SDL_FRect create_ball() {
 }
 
 SDL_FPoint ball_speed = {
-    .x = -2,
-    .y = 6,
+    .x = -0.5,
+    .y = 3,
 };
 
 bool check_aabb_collision(SDL_FRect rect1, SDL_FRect rect2) {
@@ -51,15 +51,15 @@ void ball_blocks_collision(SDL_FRect ball, blocks &blocks) {
   // }
 }
 
-void update_ball(SDL_FRect &ball) {
+void update_ball(SDL_FRect &ball, float delta_time) {
   if (ball.x < 0 || ball.x > window_width)
     ball_speed.x = -ball_speed.x;
 
   if (ball.y < 0 || ball.y > window_height)
     ball_speed.y = -ball_speed.y;
 
-  ball.x += ball_speed.x;
-  ball.y += ball_speed.y;
+  ball.x = ball.x + ball_speed.x;
+  ball.y = ball.y + ball_speed.y;
 }
 
 void render_ball(SDL_FRect ball) {
