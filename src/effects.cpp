@@ -16,7 +16,7 @@ enum class game_effects {
   hit_stop, // slow-mo when hits the blocks
 };
 
-int current_effects = 2;
+int current_effects = 4;
 
 float lerp(float &x, float target) {
   x += (target - x) * 0.1;

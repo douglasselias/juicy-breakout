@@ -1,15 +1,13 @@
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_events.h>
-#include <SDL2/SDL_keycode.h>
-#include <SDL2/SDL_mixer.h>
-#include <SDL2/SDL_rect.h>
-#include <SDL2/SDL_timer.h>
+
 #include <cstdio>
+#include <ctime>
 
 #include "src/ball.cpp"
 #include "src/blocks.cpp"
 #include "src/effects.cpp"
 #include "src/paddle.cpp"
+#include "src/particles.cpp"
 #include "src/window.cpp"
 
 bool game_is_running = true;
@@ -18,6 +16,7 @@ int bgm_channel = -1;
 
 int main(void) {
   SDL_Renderer *renderer = create_window();
+  SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
   init_audio();
   Mix_Chunk *bgm = load_audio("bgm.ogg");
   paddle_entity paddle = create_paddle();
@@ -86,6 +85,9 @@ int main(void) {
     float delta_time = get_delta_time();
     last_frame_time = SDL_GetTicks64();
 
+    if (current_effects >= (int)game_effects::ball_smoke_particles)
+      update_particles(particles);
+
     update_paddle(paddle, eased_progress, mouse_x);
     update_ball(ball, delta_time);
     update_blocks(blocks, eased_progress);
@@ -98,6 +100,9 @@ int main(void) {
     render_paddle(&paddle);
     render_ball(ball);
     render_blocks(blocks);
+
+    if (current_effects >= (int)game_effects::ball_smoke_particles)
+      render_particles(renderer, particles);
 
     swap_buffers();
   }

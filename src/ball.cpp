@@ -7,6 +7,7 @@
 #include "blocks.cpp"
 #include "effects.cpp"
 #include "paddle.cpp"
+#include "particles.cpp"
 #include "window.cpp"
 
 Mix_Chunk *sfx;
@@ -37,6 +38,8 @@ void ball_paddle_collision(SDL_FRect ball, paddle_entity paddle) {
     ball_speed.y = -ball_speed.y;
     if (current_effects >= (int)game_effects::sfx)
       play_audio(sfx);
+    if (current_effects >= (int)game_effects::ball_smoke_particles)
+      particles = init_particles({.x = ball.x, .y = ball.y});
   }
 }
 
