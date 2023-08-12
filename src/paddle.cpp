@@ -78,7 +78,6 @@ SDL_FPoint sub_vec(SDL_FPoint a, SDL_FPoint b) {
 
 void update_paddle(paddle_entity &paddle, float eased_progress, int mouse_x,
                    SDL_FPoint ball) {
-  int delta = SDL_abs(mouse_x - paddle.dimensions.x);
   float half_width = paddle.dimensions.w / 2;
   paddle.dimensions.x = mouse_x - half_width;
   paddle.left_eye.x = paddle.dimensions.x + half_width - eyes_gap;

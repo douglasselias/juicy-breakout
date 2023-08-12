@@ -87,7 +87,7 @@ void ball_blocks_collision(SDL_FRect ball, blocks &blocks) {
 }
 
 std::vector<SDL_FPoint> trail;
-void update_ball(SDL_FRect &ball, float delta_time) {
+void update_ball(SDL_FRect &ball) {
   if (ball.x < 0 || ball.x > window_width) {
     ball_speed.x = -ball_speed.x;
     if (current_effects >= (int)game_effects::sfx)

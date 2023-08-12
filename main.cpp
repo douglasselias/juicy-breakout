@@ -48,10 +48,13 @@ int main(void) {
         game_is_running = false;
         break;
       case SDLK_a:
-        if (current_effects == (int)game_effects::hit_stop)
+        if (current_effects == (int)game_effects::hit_stop) {
           current_effects = -1;
-        else
+          Mix_HaltChannel(bgm_channel);
+          is_playing_bgm = false;
+        } else {
           current_effects = (int)game_effects::hit_stop;
+        }
         break;
       case SDLK_b:
         if (current_effects > -1)
@@ -93,14 +96,13 @@ int main(void) {
     }
 
     cap_framerate();
-    float delta_time = get_delta_time();
     last_frame_time = SDL_GetTicks64();
 
     if (current_effects >= (int)game_effects::ball_smoke_particles)
       update_particles(particles);
 
     update_paddle(paddle, eased_progress, mouse_x, {.x = ball.x, .y = ball.y});
-    update_ball(ball, delta_time);
+    update_ball(ball);
     update_blocks(blocks, eased_progress);
 
     ball_paddle_collision(ball, paddle);
