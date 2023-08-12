@@ -15,7 +15,7 @@ enum class game_effects {
   hit_stop,     // slow-mo when hits the paddle
 };
 
-int current_effects = 7;
+int current_effects = 8;
 
 float lerp(float &x, float target) {
   x += (target - x) * 0.1;

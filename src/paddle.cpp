@@ -17,6 +17,8 @@ typedef struct paddle_entity {
   SDL_FPoint right_eye;
   SDL_FPoint left_pupil;
   SDL_FPoint right_pupil;
+  SDL_FPoint mouth;
+  bool is_happy;
 } paddle_entity;
 
 int eyes_gap = 36;
@@ -40,17 +42,26 @@ paddle_entity create_paddle() {
   SDL_FPoint left_pupil = {.x = left_eye.x, .y = y};
   SDL_FPoint right_pupil = {.x = right_eye.x, .y = y};
 
+  SDL_FPoint mouth = {.x = dimensions.x + half_width,
+                      .y = dimensions.y + (height / 2)};
+
   return {
       .dimensions = dimensions,
       .left_eye = left_eye,
       .right_eye = right_eye,
       .left_pupil = left_pupil,
       .right_pupil = right_pupil,
+      .mouth = mouth,
+      .is_happy = true,
   };
 }
 
+float vec_length(SDL_FPoint vec) {
+  return SDL_sqrtf(vec.x * vec.x + vec.y * vec.y);
+}
+
 SDL_FPoint normalize(SDL_FPoint vec) {
-  float length = SDL_sqrtf(vec.x * vec.x + vec.y * vec.y);
+  float length = vec_length(vec);
   if (length != 0) {
     vec.x /= length;
     vec.y /= length;
@@ -82,6 +93,11 @@ void update_paddle(paddle_entity &paddle, float eased_progress, int mouse_x,
   SDL_FPoint right_pupil_normalized = normalize(right_pupil_direction);
   paddle.right_pupil.x = paddle.right_eye.x + (right_pupil_normalized.x * 10);
   paddle.right_pupil.y = paddle.right_eye.y + (right_pupil_normalized.y * 10);
+
+  paddle.mouth.x = paddle.dimensions.x + half_width;
+
+  SDL_FPoint ball_distance = sub_vec(ball, paddle.mouth);
+  paddle.is_happy = vec_length(ball_distance) < half_window_height;
 
   if (current_effects >= (int)game_effects::tween) {
     paddle.dimensions.y =
@@ -118,12 +134,32 @@ void render_eyes(paddle_entity *paddle) {
   }
 }
 
+void render_mouth(paddle_entity *paddle) {
+  const int r = 15;
+  SDL_FPoint happy = {.x = 0, .y = r};
+  SDL_FPoint sad = {.x = -r, .y = 0};
+  SDL_FPoint current_mood = paddle->is_happy ? happy : sad;
+
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+  for (int x = -r; x <= r; x += 1) {
+    for (int y = current_mood.x; y <= current_mood.y; y += 1) {
+      if (x * x + y * y <= r * r) {
+        SDL_RenderDrawPoint(renderer, paddle->mouth.x + x, paddle->mouth.y + y);
+      }
+    }
+  }
+}
+
 void render_paddle(paddle_entity *paddle) {
   if (current_effects >= (int)game_effects::color)
     SDL_SetRenderDrawColor(renderer, 255, 161, 0, 255);
 
   render_rect(&paddle->dimensions);
-  render_eyes(paddle);
+  if (current_effects >= (int)game_effects::paddle_eyes)
+    render_eyes(paddle);
+
+  if (current_effects >= (int)game_effects::paddle_mouth)
+    render_mouth(paddle);
 
   if (current_effects >= (int)game_effects::color)
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
