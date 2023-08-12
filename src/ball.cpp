@@ -2,6 +2,7 @@
 #include <algorithm>
 
 #include <SDL2/SDL_rect.h>
+#include <cstdio>
 #include <vector>
 
 #include "blocks.cpp"
@@ -11,6 +12,8 @@
 #include "window.cpp"
 
 Mix_Chunk *sfx;
+bool shake = false;
+Uint32 shake_ticks = SDL_GetTicks64();
 
 SDL_FRect create_ball() {
   SDL_FRect ball = {
@@ -49,11 +52,18 @@ void ball_blocks_collision(SDL_FRect ball, blocks &blocks) {
       ball_speed.y = -ball_speed.y;
       if (current_effects >= (int)game_effects::sfx)
         play_audio(sfx);
+      if (current_effects >= (int)game_effects::ball_smoke_particles)
+        particles = init_particles({.x = ball.x, .y = ball.y});
+      if (current_effects >= (int)game_effects::screen_shake) {
+        shake = true;
+        shake_ticks = SDL_GetTicks64();
+      }
       blocks.erase(std::remove(blocks.begin(), blocks.end(), b), blocks.end());
     }
   }
 }
 
+std::vector<SDL_FPoint> trail;
 void update_ball(SDL_FRect &ball, float delta_time) {
   if (ball.x < 0 || ball.x > window_width) {
     ball_speed.x = -ball_speed.x;
@@ -69,6 +79,9 @@ void update_ball(SDL_FRect &ball, float delta_time) {
 
   ball.x = ball.x + ball_speed.x;
   ball.y = ball.y + ball_speed.y;
+
+  SDL_FPoint p = {.x = ball.x + ball.w / 2, .y = ball.y};
+  trail.push_back(p);
 }
 
 void render_ball(SDL_FRect ball) {
@@ -76,6 +89,14 @@ void render_ball(SDL_FRect ball) {
     SDL_SetRenderDrawColor(renderer, 255, 203, 0, 255);
 
   render_rect(&ball);
+
+  if (current_effects >= (int)game_effects::ball_trail) {
+    for (auto t : trail) {
+      SDL_RenderDrawPointF(renderer, t.x, t.y);
+    }
+    if (trail.size() > 100)
+      trail.erase(trail.begin());
+  }
 
   if (current_effects >= (int)game_effects::color)
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);

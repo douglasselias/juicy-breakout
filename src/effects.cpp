@@ -9,14 +9,13 @@ enum class game_effects {
   bgm,
   ball_smoke_particles,
   ball_trail,
-  paddle_confetti,
   screen_shake,
-  paddle_eyes, // follow ball blink
+  paddle_eyes,  // follow ball, blink
   paddle_mouth, // happy when bounce, frown when ball is far away
-  hit_stop, // slow-mo when hits the blocks
+  hit_stop,     // slow-mo when hits the paddle
 };
 
-int current_effects = 4;
+int current_effects = 6;
 
 float lerp(float &x, float target) {
   x += (target - x) * 0.1;

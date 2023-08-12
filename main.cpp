@@ -1,5 +1,7 @@
 #include <SDL2/SDL.h>
 
+#include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_timer.h>
 #include <cstdio>
 #include <ctime>
 
@@ -28,6 +30,9 @@ int main(void) {
   float eased_progress = 0;
   // Duration of the tween in milliseconds
   const Uint32 duration = 1200;
+
+  int shakeMagnitude = 5;  // Adjust the magnitude of the shake
+  int shakeDuration = 200; // Duration of each shake in milliseconds
 
   while (game_is_running) {
     SDL_Event event;
@@ -94,6 +99,22 @@ int main(void) {
 
     ball_paddle_collision(ball, paddle);
     ball_blocks_collision(ball, blocks);
+
+    if (shake) {
+      float elapsed = SDL_GetTicks64() - shake_ticks;
+      if (elapsed < shakeDuration) {
+        int offsetX = (std::rand() % shakeMagnitude * 2) - shakeMagnitude;
+        int offsetY = (std::rand() % shakeMagnitude * 2) - shakeMagnitude;
+
+        SDL_RenderSetViewport(renderer, NULL);
+        SDL_Rect shakeViewport = {offsetX, offsetY, window_width,
+                                  window_height};
+        SDL_RenderSetViewport(renderer, &shakeViewport);
+      } else {
+        SDL_RenderSetViewport(renderer, NULL);
+        shake = false;
+      }
+    }
 
     clear_window();
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
