@@ -99,7 +99,7 @@ void update_paddle(paddle_entity &paddle, float eased_progress, int mouse_x,
   SDL_FPoint ball_distance = sub_vec(ball, paddle.mouth);
   paddle.is_happy = vec_length(ball_distance) < half_window_height;
 
-  if (current_effects >= (int)game_effects::tween) {
+  if (current_effects == (int)game_effects::tween) {
     paddle.dimensions.y =
         eased_progress * (window_height - paddle.dimensions.h - 20);
   }

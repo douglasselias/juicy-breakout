@@ -103,8 +103,10 @@ void update_ball(SDL_FRect &ball, float delta_time) {
   ball.x += ball_speed.x;
   ball.y += ball_speed.y;
 
-  SDL_FPoint p = {.x = ball.x + ball.w / 2, .y = ball.y};
-  trail.push_back(p);
+  if (current_effects >= (int)game_effects::ball_trail) {
+    SDL_FPoint p = {.x = ball.x + ball.w / 2, .y = ball.y};
+    trail.push_back(p);
+  }
 }
 
 void render_ball(SDL_FRect ball) {

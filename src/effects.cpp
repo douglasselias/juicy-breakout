@@ -15,7 +15,7 @@ enum class game_effects {
   hit_stop,
 };
 
-int current_effects = 9;
+int current_effects = -1;
 
 float lerp(float &x, float target) {
   x += (target - x) * 0.1;

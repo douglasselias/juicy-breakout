@@ -4,6 +4,8 @@ Based on this [video about game 'juice'](https://www.youtube.com/watch?v=Fy0aCDm
 
 Press `N` to go to **next** effect and `B` to go **back**
 
+Press `A` to toggle all effects.
+
 ## 'Juiciness' list
 
 - Color

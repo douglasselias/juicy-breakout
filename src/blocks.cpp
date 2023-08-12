@@ -62,7 +62,7 @@ blocks create_blocks() {
 }
 
 void update_blocks(blocks &blocks, float eased_progress) {
-  if (current_effects >= (int)game_effects::tween) {
+  if (current_effects == (int)game_effects::tween) {
     for (block &b : blocks)
       b.dimensions.y =
           static_cast<int>(eased_progress * b.original_dimensions.y);

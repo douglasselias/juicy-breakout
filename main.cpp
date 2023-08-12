@@ -47,6 +47,12 @@ int main(void) {
       case SDLK_ESCAPE:
         game_is_running = false;
         break;
+      case SDLK_a:
+        if (current_effects == (int)game_effects::hit_stop)
+          current_effects = -1;
+        else
+          current_effects = (int)game_effects::hit_stop;
+        break;
       case SDLK_b:
         if (current_effects > -1)
           current_effects -= 1;
@@ -59,7 +65,7 @@ int main(void) {
       case SDLK_n:
         if (current_effects < 40) {
           current_effects += 1;
-          if (current_effects >= (int)game_effects::tween) {
+          if (current_effects == (int)game_effects::tween) {
             start_time = SDL_GetTicks64();
             paddle.dimensions.y = -800;
 
@@ -71,7 +77,7 @@ int main(void) {
       }
     }
 
-    if (current_effects >= (int)game_effects::tween) {
+    if (current_effects == (int)game_effects::tween) {
       Uint32 current_time = SDL_GetTicks64();
       progress = static_cast<float>(current_time - start_time) / duration;
       if (progress > 1.0f)
