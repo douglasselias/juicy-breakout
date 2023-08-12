@@ -1,8 +1,10 @@
 #pragma once
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_rect.h>
 #include <SDL2/SDL_render.h>
+#include <cstdio>
 
 const int window_width = 1280;
 const int window_height = 720;
@@ -45,4 +47,16 @@ void clear_window() {
 
 void swap_buffers() { SDL_RenderPresent(renderer); }
 
-void render_rect(SDL_FRect* rect) { SDL_RenderFillRectF(renderer, rect); }
+void render_rect(SDL_FRect *rect) { SDL_RenderFillRectF(renderer, rect); }
+
+void init_audio() { Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048); }
+
+Mix_Chunk *load_audio(const char *file) {
+  Mix_Chunk *sound = Mix_LoadWAV(file);
+  return sound;
+}
+
+int play_audio(Mix_Chunk *sound) {
+  int channel = Mix_PlayChannel(-1, sound, 0);
+  return channel;
+}

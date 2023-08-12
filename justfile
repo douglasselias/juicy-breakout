@@ -1,4 +1,4 @@
-flags := "-std=c++14 -Wall -Wextra -Werror -fno-exceptions -fno-rtti -Wno-unused-parameter -Wno-unused-variable -Wno-unused-const-variable -g3 -O0 -lSDL2 -lSDL2_ttf"
+flags := "-std=c++14 -Wall -Wextra -Werror -fno-exceptions -fno-rtti -Wno-unused-parameter -Wno-unused-variable -Wno-unused-const-variable -g3 -O0 -lSDL2 -lSDL2_ttf -lSDL2_mixer"
 # -fsanitize=xxx
 
 just:

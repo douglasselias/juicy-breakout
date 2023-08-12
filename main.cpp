@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_rect.h>
 #include <SDL2/SDL_timer.h>
 #include <cstdio>
@@ -12,9 +13,13 @@
 #include "src/window.cpp"
 
 bool game_is_running = true;
+bool is_playing_bgm = false;
+int bgm_channel = -1;
 
 int main(void) {
   SDL_Renderer *renderer = create_window();
+  init_audio();
+  Mix_Chunk *bgm = load_audio("bgm.ogg");
   paddle_entity paddle = create_paddle();
   blocks blocks = create_blocks();
   SDL_FRect ball = create_ball();
@@ -41,6 +46,11 @@ int main(void) {
       case SDLK_b:
         if (current_effects > -1)
           current_effects -= 1;
+
+        if (current_effects < (int)game_effects::bgm) {
+          is_playing_bgm = false;
+          Mix_HaltChannel(bgm_channel);
+        }
         break;
       case SDLK_n:
         if (current_effects < 40) {
@@ -64,6 +74,12 @@ int main(void) {
         progress = 1.0f;
 
       eased_progress = ease_in_out_back(progress);
+    }
+
+    if (current_effects >= (int)game_effects::bgm) {
+      if (!is_playing_bgm)
+        bgm_channel = play_audio(bgm);
+      is_playing_bgm = true;
     }
 
     cap_framerate();

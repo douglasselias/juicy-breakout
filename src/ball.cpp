@@ -9,6 +9,8 @@
 #include "paddle.cpp"
 #include "window.cpp"
 
+Mix_Chunk *sfx;
+
 SDL_FRect create_ball() {
   SDL_FRect ball = {
       .x = half_window_width,
@@ -16,6 +18,7 @@ SDL_FRect create_ball() {
       .w = 20,
       .h = 20,
   };
+  sfx = load_audio("hit.wav");
   return ball;
 }
 
@@ -32,31 +35,34 @@ bool check_aabb_collision(SDL_FRect rect1, SDL_FRect rect2) {
 void ball_paddle_collision(SDL_FRect ball, paddle_entity paddle) {
   if (check_aabb_collision(ball, paddle.dimensions)) {
     ball_speed.y = -ball_speed.y;
+    if (current_effects >= (int)game_effects::sfx)
+      play_audio(sfx);
   }
 }
 
 void ball_blocks_collision(SDL_FRect ball, blocks &blocks) {
-  // std::vector<block> blocks_to_remove = {};
-
   for (block b : blocks) {
     if (check_aabb_collision(ball, b.dimensions)) {
       ball_speed.y = -ball_speed.y;
-      // blocks_to_remove.push_back(b);
+      if (current_effects >= (int)game_effects::sfx)
+        play_audio(sfx);
       blocks.erase(std::remove(blocks.begin(), blocks.end(), b), blocks.end());
     }
   }
-
-  // for (block b : blocks_to_remove) {
-  //   blocks.erase(std::remove(blocks.begin(), blocks.end(), b), blocks.end());
-  // }
 }
 
 void update_ball(SDL_FRect &ball, float delta_time) {
-  if (ball.x < 0 || ball.x > window_width)
+  if (ball.x < 0 || ball.x > window_width) {
     ball_speed.x = -ball_speed.x;
+    if (current_effects >= (int)game_effects::sfx)
+      play_audio(sfx);
+  }
 
-  if (ball.y < 0 || ball.y > window_height)
+  if (ball.y < 0 || ball.y > window_height) {
     ball_speed.y = -ball_speed.y;
+    if (current_effects >= (int)game_effects::sfx)
+      play_audio(sfx);
+  }
 
   ball.x = ball.x + ball_speed.x;
   ball.y = ball.y + ball_speed.y;
