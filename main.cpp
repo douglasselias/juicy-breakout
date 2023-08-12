@@ -93,7 +93,7 @@ int main(void) {
     if (current_effects >= (int)game_effects::ball_smoke_particles)
       update_particles(particles);
 
-    update_paddle(paddle, eased_progress, mouse_x);
+    update_paddle(paddle, eased_progress, mouse_x, {.x = ball.x, .y = ball.y});
     update_ball(ball, delta_time);
     update_blocks(blocks, eased_progress);
 

@@ -13,6 +13,6 @@ Press `N` to go to **next** effect and `B` to go **back**
 - Smoke Particles when ball hits something
 - Ball trail
 - Screen Shake
-- Eyes on the paddle that tracks the ball and blink
+- Eyes on the paddle that tracks the ball
 - Mouth on the paddle, happy when ball bounces on it, frown when the ball is far away
 - Bonus: [Hit stop by Sakurai](https://www.youtube.com/watch?v=OdVkEOzdCPw)
